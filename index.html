@@ -397,10 +397,21 @@ async function load(){
 }
 
 /* ---------- Lien de profil (famille, amis, voisins…) ---------- */
+/* Le code d'accès reste dans l'adresse (?acces=code) : un rafraîchissement, un favori ou une icône
+   « Sur l'écran d'accueil » gardent ainsi le profil, même si le navigateur ne conserve pas sa mémoire.
+   Les anciens liens en #code sont convertis. */
+function codeValide(c){ return !!(S&&c&&profils().some(p=>p.code&&p.code===c)) }
+function urlAvec(code){ const u=new URL(location.href); if(code) u.searchParams.set("acces",code); else u.searchParams.delete("acces");
+  if(!/^#lot-/.test(u.hash)) u.hash=""; return u.pathname+u.search+u.hash }
 function checkHash(){
+  let changed=false;
+  const q=new URLSearchParams(location.search).get("acces")||"";
   const h=decodeURIComponent(location.hash.replace(/^#/,""));
-  if(S&&h&&profils().some(p=>p.code&&p.code===h)){ monCode=h; lsSet("vm-profil",h); try{history.replaceState(null,"",location.pathname+location.search)}catch(e){} return true }
-  return false;
+  if(codeValide(q)){ if(monCode!==q) changed=true; monCode=q }
+  else if(codeValide(h)){ monCode=h; changed=true }
+  if(codeValide(monCode)){ lsSet("vm-profil",monCode);
+    if(q!==monCode||codeValide(h)) try{history.replaceState(null,"",urlAvec(monCode))}catch(e){} }
+  return changed;
 }
 
 /* ---------- Rendu ---------- */
@@ -771,7 +782,7 @@ function linksPanel(){
   const J=delaiJ();
   return `<div class="panel" role="dialog" aria-modal="true" aria-labelledby="lkt">
     <div class="panel-head"><h2 id="lkt">Liens à envoyer</h2><button class="x" data-act="close" aria-label="Fermer">×</button></div>
-    ${profils().map((p,i)=>`<div class="field"><span class="lbl">Lien « ${esc(p.nom)} » · accès ${p.delai?"J+"+esc(p.delai):"dès la mise en ligne"}</span><span class="ref mono" id="lk-${i}" style="overflow-wrap:anywhere">${esc(SITE_URL+"#"+p.code)}</span>
+    ${profils().map((p,i)=>`<div class="field"><span class="lbl">Lien « ${esc(p.nom)} » · accès ${p.delai?"J+"+esc(p.delai):"dès la mise en ligne"}</span><span class="ref mono" id="lk-${i}" style="overflow-wrap:anywhere">${esc(SITE_URL+"?acces="+p.code)}</span>
       <div class="cta"><button class="btn primary" data-act="copy-el" data-el="lk-${i}">Copier ce lien</button><button class="btn danger" data-act="new-code" data-id="${esc(p.id)}">Changer le code</button></div></div>`).join("")}
     <div class="field"><span class="lbl">Lien public · accès ${J?"J+"+J:"dès la mise en ligne"}</span><span class="ref mono" id="lk-pub" style="overflow-wrap:anywhere">${esc(SITE_URL)}</span>
       <div class="cta"><button class="btn" data-act="copy-el" data-el="lk-pub">Copier le lien public</button></div></div>
@@ -830,8 +841,8 @@ document.addEventListener("click",e=>{
   const a=b.dataset.act, id=b.dataset.id;
   if(a==="backdrop"){ if(e.target===b&&!saving) closeLayer(); return }
   switch(a){
-    case "open": { const l=byId(id); try{history.replaceState(null,"","#lot-"+l.no)}catch(err){} showLayer("lot",id); break }
-    case "resa": { const l=byId(id); try{history.replaceState(null,"","#lot-"+l.no)}catch(err){} showLayer("lot",id); const bx=document.getElementById("resa-box"); if(bx) bx.scrollIntoView({block:"center"}); break }
+    case "open": { const l=byId(id); try{history.replaceState(null,"",location.pathname+location.search+"#lot-"+l.no)}catch(err){} showLayer("lot",id); break }
+    case "resa": { const l=byId(id); try{history.replaceState(null,"",location.pathname+location.search+"#lot-"+l.no)}catch(err){} showLayer("lot",id); const bx=document.getElementById("resa-box"); if(bx) bx.scrollIntoView({block:"center"}); break }
     case "close": closeLayer(); break;
     case "fs": F.statut=b.dataset.v; renderGrid(); break;
     case "f-cat": F.cat=b.dataset.v; renderGrid(); break;
