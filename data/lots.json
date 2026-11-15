@@ -199,6 +199,25 @@
    "dispoLe": 1794743570825,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhrzkfu",
+   "no": 8,
+   "titre": "Bergère",
+   "categorie": "Meuble",
+   "piece": "Salon/ Salle à manger",
+   "description": "",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhrzkfu-mwhrzqc55nmg.jpg",
+     "t": "photos/lmwhrzkfu-mwhrzqc55nmg-t.jpg"
+    }
+   ],
+   "dispoLe": 1794743610139,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
