@@ -2160,6 +2160,25 @@
    "dispoLe": 1794752673552,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhxoixt",
+   "no": 111,
+   "titre": "Routeurs réseau dont 1 wifi extender",
+   "categorie": "Informatique & multimédia",
+   "piece": "Clayettes",
+   "description": "Caisse 2",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhxoixt-mwhxovsv8iid.jpg",
+     "t": "photos/lmwhxoixt-mwhxovsv8iid-t.jpg"
+    }
+   ],
+   "dispoLe": 1794753235576,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
