@@ -131,6 +131,7 @@ h1{font-size:clamp(34px,7vw,64px);font-weight:800;letter-spacing:-.02em;margin-t
 .field label,.lbl{font-weight:700;font-size:14px}
 .field input,.field textarea{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;font-size:16px}
 .field textarea{min-height:110px;resize:vertical}
+.field select.sel{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;font-size:16px;min-height:44px}
 .hint{font-size:13px;color:var(--muted)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:420px){.row2{grid-template-columns:1fr}}
@@ -513,7 +514,7 @@ function editorPanel(){
     </div>
     <div class="row2">
       <div class="field"><label for="f-prix">Prix (€)</label><input id="f-prix" inputmode="decimal" value="${esc(d.prix)}" placeholder="Vide = faire une offre"><span class="hint">0 = gratuit</span></div>
-      <div class="field"><label for="f-piece">Pièce</label><input id="f-piece" list="dl-pieces" value="${esc(d.piece)}" placeholder="Ex. Salon" autocomplete="off"><datalist id="dl-pieces">${pcs.map(p=>`<option value="${esc(p)}">`).join("")}</datalist></div>
+      <div class="field"><label for="f-piece">Pièce</label><select id="f-piece" class="sel"><option value="">— Choisir une pièce —</option>${(d.piece&&!pcs.includes(d.piece)?[d.piece]:[]).concat(pcs).map(p=>`<option value="${esc(p)}" ${d.piece===p?"selected":""}>${esc(p)}</option>`).join("")}</select><span class="hint">Liste modifiable dans Configuration.</span></div>
     </div>
     <div class="field"><span class="lbl" id="st-l">Statut</span>
       <div class="seg" role="radiogroup" aria-labelledby="st-l">${statuts().map(x=>
