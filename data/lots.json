@@ -1609,6 +1609,25 @@
    "dispoLe": 1794748392846,
    "reservePour": "Magali",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhuuw2b",
+   "no": 82,
+   "titre": "Bibliothèques blanches",
+   "categorie": "Meuble",
+   "piece": "Bureau",
+   "description": "",
+   "prix": "",
+   "statut": "reserve",
+   "photos": [
+    {
+     "id": "photos/lmwhuuw2b-mwhuvbdr2h0j.jpg",
+     "t": "photos/lmwhuuw2b-mwhuvbdr2h0j-t.jpg"
+    }
+   ],
+   "dispoLe": 1794748423139,
+   "reservePour": "Magali",
+   "reserveFoyer": true
   }
  ]
 }
