@@ -12,6 +12,12 @@
   ],
   "profils": [
    {
+    "id": "foyer",
+    "nom": "Foyer",
+    "delai": 0,
+    "code": "foyer-etmga"
+   },
+   {
     "id": "famille",
     "nom": "Famille",
     "delai": 0,
