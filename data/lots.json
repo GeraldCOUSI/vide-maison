@@ -1244,6 +1244,20 @@
    "dispoLe": 1794747459464,
    "reservePour": "",
    "reserveAcheteurs": true
+  },
+  {
+   "id": "lmwhuber0",
+   "no": 62,
+   "titre": "Enceintes klipsch",
+   "categorie": "Divers",
+   "piece": "Salle HC",
+   "description": "",
+   "prix": "",
+   "statut": "reserve",
+   "photos": [],
+   "dispoLe": 1794747524820,
+   "reservePour": "Gérald",
+   "reserveFoyer": true
   }
  ]
 }
