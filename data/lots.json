@@ -2027,6 +2027,25 @@
    "dispoLe": 1794751928252,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhwz0rh",
+   "no": 104,
+   "titre": "Dongles SIM",
+   "categorie": "Informatique & multimédia",
+   "piece": "Clayettes",
+   "description": "Caisse 2\nPour une connections DATA sur PC (nécessite un abonnement 3G ou 4G)",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhwz0rh-mwhwziriqpma.jpg",
+     "t": "photos/lmwhwz0rh-mwhwziriqpma-t.jpg"
+    }
+   ],
+   "dispoLe": 1794752029171,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
