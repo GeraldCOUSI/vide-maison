@@ -751,7 +751,7 @@
    "piece": "Chambre principale",
    "description": "",
    "prix": "",
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwht7tcn-mwht8cft8ahk.jpg",
