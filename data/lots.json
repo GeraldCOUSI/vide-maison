@@ -2122,6 +2122,25 @@
    "dispoLe": 1794752431236,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhxcmo1",
+   "no": 109,
+   "titre": "Chargeur induction Qi",
+   "categorie": "Informatique & multimédia",
+   "piece": "Clayettes",
+   "description": "Caisse 2",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhxcmo1-mwhxd0s80a11.jpg",
+     "t": "photos/lmwhxcmo1-mwhxd0s80a11-t.jpg"
+    }
+   ],
+   "dispoLe": 1794752616999,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
