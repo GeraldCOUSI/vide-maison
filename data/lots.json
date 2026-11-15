@@ -2084,6 +2084,25 @@
    "dispoLe": 1794752297163,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhx6n7t",
+   "no": 107,
+   "titre": "Adaptateur réseau pour imprimante",
+   "categorie": "Informatique & multimédia",
+   "piece": "Clayettes",
+   "description": "Caisse 2",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhx6n7t-mwhx78rht2p1.jpg",
+     "t": "photos/lmwhx6n7t-mwhx78rht2p1-t.jpg"
+    }
+   ],
+   "dispoLe": 1794752344965,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
