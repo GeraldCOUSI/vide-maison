@@ -1666,6 +1666,20 @@
    "dispoLe": 1794748485561,
    "reservePour": "Gérald",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhuxf9v",
+   "no": 85,
+   "titre": "Bibliothèques G",
+   "categorie": "Meuble",
+   "piece": "Bureau",
+   "description": "",
+   "prix": "",
+   "statut": "reserve",
+   "photos": [],
+   "dispoLe": 1794748535321,
+   "reservePour": "Gérald",
+   "reserveFoyer": true
   }
  ]
 }
