@@ -474,6 +474,25 @@
    "dispoLe": 1794744219022,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhsdgvu",
+   "no": 23,
+   "titre": "Meuble avec bacs",
+   "categorie": "Meuble",
+   "piece": "Chambre Jérémie",
+   "description": "",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhsdgvu-mwhsdkgaq6jz.jpg",
+     "t": "photos/lmwhsdgvu-mwhsdkgaq6jz-t.jpg"
+    }
+   ],
+   "dispoLe": 1794744245942,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
