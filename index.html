@@ -276,6 +276,8 @@ function auFoyer(l){ return !!(l.reserveFoyer||l.familleSeule)&&!l.reserveAchete
 /* Profil « Acheteurs maison » : ne voit que les lots qui lui sont réservés (bouton dans la fiche du lot). */
 function achId(){ const p=profilById("acheteurs"); return p?p.id:null }
 function achNom(){ const p=profilById(achId()); return p?p.nom:"Acheteurs maison" }
+/* L'administrateur et la Famax voient pour qui un lot est réservé. */
+function voitResa(r){ return r==="admin"||(!!foyerId()&&r===foyerId()) }
 function auxAch(l){ return !!l.reserveAcheteurs }
 /* Moment où le profil r voit le lot l : calendrier normal, sauf « réservé à la famille » (famille seule)
    « Réservé au foyer » : seul le foyer voit le lot. En le rendant disponible, dispoLe repart de ce moment
@@ -491,9 +493,9 @@ function renderGrid(){
     el.innerHTML=[`<button class="chip" data-act="f-${key}" data-v="" aria-pressed="${!F[key]}">${label}</button>`]
       .concat(vals.map(v=>`<button class="chip" data-act="f-${key}" data-v="${esc(v)}" aria-pressed="${F[key]===v}">${esc(v)}<span class="n">${all.filter(l=>l[field]===v).length}</span></button>`)).join("")};
   row("c-cat","cat","categorie","Toutes catégories"); row("c-piece","piece","piece","Toutes les pièces");
-  const q=F.q.trim().toLowerCase();
+  const q=F.q.trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
   const vis=all.filter(l=>(F.statut==="tous"||statusOf(l)===F.statut)&&(!F.cat||l.categorie===F.cat)&&(!F.piece||l.piece===F.piece)
-    &&(!q||[l.titre,l.description,l.piece,l.categorie,"lot "+l.no,pad(l.no)].join(" ").toLowerCase().includes(q)));
+    &&(!q||[l.titre,l.description,l.piece,l.categorie,"lot "+l.no,pad(l.no),voitResa(r)?l.reservePour:""].join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().includes(q)));
   const g=document.getElementById("grid");
   if(!all.length){g.innerHTML=`<div class="empty"><h2>Les lots arrivent bientôt</h2><p>${r==="admin"?"Appuie sur « + Nouveau lot » pour créer le premier.":"Revenez un peu plus tard."}</p></div>`;return}
   if(!vis.length){g.innerHTML=`<div class="empty"><h2>Aucun lot ne correspond</h2><p>Changez de filtre ou effacez la recherche.</p></div>`;return}
@@ -504,7 +506,7 @@ function card(l){
   const bt=badgeTxt(l,r);
   const phase=ty==="parti"?"":r==="admin"?(!l.dispoLe?`<span class="ph-b draft">Brouillon · non visible</span>`:bt?`<span class="ph-b">${esc(bt)}</span>`:"")
     :bt&&ty==="dispo"?`<span class="ph-b">${esc(bt)}</span>`:"";
-  const pour=r==="admin"&&ty==="reserve"&&l.reservePour?`<span class="holder">Réservé pour ${esc(l.reservePour)}</span>`:"";
+  const pour=voitResa(r)&&ty==="reserve"&&l.reservePour?`<span class="holder">Réservé pour ${esc(l.reservePour)}</span>`:"";
   const quick=r==="admin"?`<div class="quick" role="group" aria-label="Statut du lot ${l.no}">${statuts().map(x=>
     `<button data-act="qs" data-id="${esc(l.id)}" data-v="${esc(x.id)}" aria-pressed="${s===x.id}">${esc(x.label)}</button>`).join("")}</div>`
     :ty==="dispo"?`<div class="cardcta"><button class="btn primary" data-act="resa" data-id="${esc(l.id)}">Réserver</button></div>`:"";
@@ -545,7 +547,7 @@ function lotPanel(id){
   if(!l||!visible(l)) return `<div class="panel"><div class="panel-head"><h2>Ce lot n'est pas disponible</h2><button class="x" data-act="close" aria-label="Fermer">×</button></div></div>`;
   const s=statusOf(l), ty=typeOf(l), r=role();
   const box=r==="admin"?"":ty==="parti"?`<div class="reserve-box"><p>Ce lot n'est plus disponible (${esc(stLabel(s).toLowerCase())}).</p></div>`
-    :ty==="reserve"?`<div class="reserve-box"><span class="lbl">Ce lot est déjà réservé</span><p>Il peut redevenir disponible : revenez plus tard.</p></div>`:reserveBox(l);
+    :ty==="reserve"?`<div class="reserve-box"><span class="lbl">Ce lot est déjà réservé${voitResa(r)&&l.reservePour?` pour ${esc(l.reservePour)}`:""}</span><p>Il peut redevenir disponible : revenez plus tard.</p></div>`:reserveBox(l);
   return `<div class="panel" role="dialog" aria-modal="true" aria-labelledby="dt">
     <div class="panel-head"><span class="eyebrow">Lot ${pad(l.no)}${l.categorie?" · "+esc(l.categorie):""}${l.piece?" · "+esc(l.piece):""}</span><button class="x" data-act="close" aria-label="Fermer">×</button></div>
     ${(l.photos||[]).length?`<div class="gallery" id="gal">${l.photos.map((p,i)=>`<img src="${esc(src(p.id))}" alt="Photo ${i+1} du lot ${l.no}">`).join("")}</div>
