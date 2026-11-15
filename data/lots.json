@@ -1008,6 +1008,25 @@
    "dispoLe": 1794746924869,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhtzmk9",
+   "no": 50,
+   "titre": "Frigo du bas",
+   "categorie": "Électroménager",
+   "piece": "Garage",
+   "description": "",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhtzmk9-mwhtzwaqrsrl.jpg",
+     "t": "photos/lmwhtzmk9-mwhtzwaqrsrl-t.jpg"
+    }
+   ],
+   "dispoLe": 1794746984756,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
