@@ -1092,6 +1092,25 @@
    "dispoLe": 1794747141035,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhu42a2",
+   "no": 54,
+   "titre": "Lave linge Bosch",
+   "categorie": "Électroménager",
+   "piece": "Buanderie",
+   "description": "",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhu42a2-mwhu4ewwlny4.jpg",
+     "t": "photos/lmwhu42a2-mwhu4ewwlny4-t.jpg"
+    }
+   ],
+   "dispoLe": 1794747175252,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
