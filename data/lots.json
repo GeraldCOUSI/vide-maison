@@ -1386,6 +1386,25 @@
    "dispoLe": 1794747812404,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhuigun",
+   "no": 70,
+   "titre": "Fauteuil IKEA blanc 1",
+   "categorie": "Meuble",
+   "piece": "Salle HC",
+   "description": "",
+   "prix": "",
+   "statut": "parti",
+   "photos": [
+    {
+     "id": "photos/lmwhuigun-mwhuinzr92ej.jpg",
+     "t": "photos/lmwhuigun-mwhuinzr92ej-t.jpg"
+    }
+   ],
+   "dispoLe": 1794747862447,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
