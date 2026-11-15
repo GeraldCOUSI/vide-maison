@@ -10,7 +10,26 @@
     "tel": "06.75.22.96.98"
    }
   ],
-  "codeFamille": "famille-jmjrb"
+  "profils": [
+   {
+    "id": "famille",
+    "nom": "Famille",
+    "delai": 0,
+    "code": "famille-jmjrb"
+   },
+   {
+    "id": "amis",
+    "nom": "Amis",
+    "delai": 2,
+    "code": "amis-f9t45"
+   },
+   {
+    "id": "voisins",
+    "nom": "Voisins",
+    "delai": 4,
+    "code": "voisins-zsa44"
+   }
+  ]
  },
  "lots": [
   {

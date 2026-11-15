@@ -197,6 +197,7 @@ table.rs{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
 .st-row input,.st-row select{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 10px;font-size:16px;min-width:0}
 .st-ops{display:flex;gap:6px}.st-ops .btn{min-height:40px;padding:6px 12px}
 .st-used{white-space:nowrap}
+.pf-delai{display:flex;align-items:center;gap:6px}.pf-delai input{max-width:90px}
 @media (max-width:480px){.st-row{grid-template-columns:1fr 1fr}.st-used{grid-column:1}.st-ops{justify-content:flex-end}}
 .linkbtn{border:0;background:none;padding:0;margin-left:10px;color:var(--muted);text-decoration:underline;font-size:13px;cursor:pointer}
 .warn{border-left:3px solid var(--hold);padding:8px 12px;background:var(--card);border-radius:0 8px 8px 0;font-size:14px}
@@ -222,8 +223,8 @@ const app=document.getElementById("app");
 
 let S=null;                 // {meta, lots}
 let token=lsGet("vm-token")||"";
-let admin=!!token, gestion=ssGet("vm-gestion")!=="0", vue=ssGet("vm-vue")||"invite";
-let famille=false, saving=false, loadError="";
+let admin=!!token, gestion=ssGet("vm-gestion")!=="0", vue=ssGet("vm-vue")||"public";
+let monCode=lsGet("vm-profil")||lsGet("vm-famille")||"", saving=false, loadError="";
 let F={statut:"tous",cat:"",piece:"",q:""};
 let draft=null,isNewDraft=false,confirmDel=false,layerKind=null,layerArg=null;
 const blobURL={};           // aperçu local des photos tout juste envoyées
@@ -247,10 +248,32 @@ function lotList(){return S.lots.slice().sort((a,b)=>(a.no||0)-(b.no||0))}
 function byId(id){return S.lots.find(l=>l.id===id)}
 function nextNo(){return S.lots.reduce((m,l)=>Math.max(m,l.no||0),0)+1}
 function delaiJ(){const d=S.meta.delaiJours; return typeof d==="number"&&d>=0?d:3}
-function invitesLe(l){return l.dispoLe?l.dispoLe+delaiJ()*864e5:null}
+/* Profils : chaque profil (famille, amis, voisins…) a son lien (code) et son délai d'accès après la mise à disposition d'un lot.
+   Le lien public (sans code) a son propre délai : meta.delaiJours. */
+function profils(){ const p=S&&S.meta.profils; if(Array.isArray(p)&&p.length) return p;
+  return S&&S.meta.codeFamille?[{id:"famille",nom:"Famille",code:S.meta.codeFamille,delai:0}]:[] }
+function pieces(){ const l=S&&S.meta.pieces; return Array.isArray(l)&&l.length?l:PIECES }
+function profilById(id){return profils().find(p=>p.id===id)}
+function monProfil(){ const p=profils().find(x=>x.code&&x.code===monCode); return p?p.id:null }
+function delaiDe(r){ if(r==="public") return delaiJ(); const p=profilById(r); return p?Math.max(0,Number(p.delai)||0):delaiJ() }
+function nomDe(r){ if(r==="public") return "Public"; const p=profilById(r); return p?p.nom:"Public" }
+function ouvertureDe(l,r){return l.dispoLe?l.dispoLe+delaiDe(r)*864e5:null}
+function audiences(){ return profils().map(p=>({id:p.id,nom:p.nom,delai:delaiDe(p.id)})).concat([{id:"public",nom:"Public",delai:delaiJ()}]).sort((a,b)=>a.delai-b.delai) }
+function invitesLe(l){return ouvertureDe(l,"public")}
 function enExclu(l){return !!l.dispoLe&&Date.now()<invitesLe(l)}
-function role(){ if(admin&&gestion) return "admin"; if(admin) return vue; return famille?"famille":"invite" }
-function visible(l){ const r=role(); if(r==="admin") return true; if(!l.dispoLe) return false; return r==="famille"?Date.now()>=l.dispoLe:Date.now()>=invitesLe(l) }
+function role(){ if(admin&&gestion) return "admin"; if(admin) return (vue==="public"||profilById(vue))?vue:"public"; return monProfil()||"public" }
+function visible(l){ const r=role(); if(r==="admin") return true; if(!l.dispoLe) return false; return Date.now()>=ouvertureDe(l,r) }
+function calendrier(t0){ return audiences().map(a=>`${esc(a.nom)} ${a.delai?"J+"+a.delai+(t0?" ("+esc(fmtShort(t0+a.delai*864e5))+")":""):"dès la mise en ligne"}`).join(" · ") }
+/* Mention affichée sur un lot pour le visiteur r (ou l'administrateur). */
+function badgeTxt(l,r){
+  if(!l.dispoLe) return ""; const now=Date.now(), auds=audiences();
+  const open=auds.filter(a=>now>=l.dispoLe+a.delai*864e5), next=auds.find(a=>now<l.dispoLe+a.delai*864e5);
+  if(!next) return "";
+  if(r==="admin") return `Ouvert à : ${open.map(a=>a.nom).join(", ")||"personne"} · ${next.nom} le ${fmtJour(l.dispoLe+next.delai*864e5)}`;
+  if(r==="public") return "";
+  if(open.length===1&&open[0].id===r) return `Exclusivité ${open[0].nom.toLowerCase()} jusqu'au ${fmtJour(l.dispoLe+next.delai*864e5)}`;
+  return enExclu(l)?`Avant-première jusqu'au ${fmtJour(invitesLe(l))}`:"";
+}
 function statuts(){const l=(S&&S.meta.statuts)||[]; return l.length?l:DEF_STATUTS}
 function categories(){const l=S&&S.meta.categories; return Array.isArray(l)&&l.length?l:CATS}
 function stDef(id){return statuts().find(x=>x.id===id)||statuts().find(x=>x.type==="dispo")||DEF_STATUTS[0]}
@@ -311,10 +334,10 @@ async function load(){
   }catch(e){ if(!S) loadError="Le catalogue n'a pas pu être chargé. Vérifie ta connexion puis recharge la page." }
 }
 
-/* ---------- Lien famille ---------- */
+/* ---------- Lien de profil (famille, amis, voisins…) ---------- */
 function checkHash(){
   const h=decodeURIComponent(location.hash.replace(/^#/,""));
-  if(S&&S.meta.codeFamille&&h===S.meta.codeFamille){ famille=true; lsSet("vm-famille",S.meta.codeFamille); try{history.replaceState(null,"",location.pathname+location.search)}catch(e){} return true }
+  if(S&&h&&profils().some(p=>p.code&&p.code===h)){ monCode=h; lsSet("vm-profil",h); try{history.replaceState(null,"",location.pathname+location.search)}catch(e){} return true }
   return false;
 }
 
@@ -330,11 +353,11 @@ function render(){
         <h1>${esc(m.titre||"Vide-maison")}</h1>
         ${m.intro?`<p class="intro">${esc(m.intro)}</p>`:""}
         ${m.infos?`<div class="infos">${esc(m.infos)}</div>`:""}
-        ${r==="famille"&&!admin?`<div class="who"><span class="role famille">Accès famille</span></div>`:""}
+        ${r!=="public"&&r!=="admin"&&!admin?`<div class="who"><span class="role famille">Accès ${esc(nomDe(r).toLowerCase())}</span></div>`:""}
       </div>
       ${admin?`<button class="btn ${gestion?"":"primary"}" data-act="toggle">${gestion?"Aperçu visiteur":"Mode gestion"}</button>`:""}
     </header>
-    ${admin&&!gestion?`<div class="phase">Aperçu : <span class="chips" style="display:inline-flex;vertical-align:middle;margin-left:6px">${["invite","famille"].map(v=>`<button class="chip" data-act="vue" data-v="${v}" aria-pressed="${vue===v}">${v==="invite"?"Invités":"Famille"}</button>`).join("")}</span></div>`:""}
+    ${admin&&!gestion?`<div class="phase">Aperçu : <span class="chips" style="display:inline-flex;vertical-align:middle;margin-left:6px">${[{id:"public",nom:"Public"}].concat(profils()).map(v=>`<button class="chip" data-act="vue" data-v="${esc(v.id)}" aria-pressed="${role()===v.id}">${esc(v.nom)}</button>`).join("")}</span></div>`:""}
     <div id="phase">${phaseMsg()}</div>
     <div id="admin">${adminBox()}</div>
     <div class="bar">
@@ -355,16 +378,17 @@ function render(){
 function phaseMsg(){
   const r=role(), J=delaiJ(), all=lotList(), cs=contacts();
   const qui=cs.length?cs.map(c=>esc(c.nom)).join(" ou "):"l'organisateur";
-  if(r==="famille"){
+  if(r!=="public"&&r!=="admin"){
+    const d=delaiDe(r), avance=J-d;
     const ex=all.filter(l=>visible(l)&&enExclu(l)&&typeOf(l)==="dispo").length;
-    return `<div class="phase">Chaque lot vous est proposé en <b>exclusivité pendant ${J} jour${J>1?"s":""}</b> après sa mise en ligne, avant d'être ouvert aux invités.${ex?` En ce moment : <b>${ex} lot${ex>1?"s":""} en exclusivité</b>.`:""} Pour réserver, appuyez sur <b>Réserver</b> sous le lot puis envoyez un SMS à ${qui} avec le n° de lot.</div>`;
+    return `<div class="phase">Chaque lot vous est accessible <b>${d?d+" jour"+(d>1?"s":"")+" après":"dès"}</b> sa mise en ligne${avance>0?`, soit <b>${avance} jour${avance>1?"s":""} avant le public</b>`:""}.${ex?` En ce moment : <b>${ex} lot${ex>1?"s":""} en avant-première</b>.`:""} Pour réserver, appuyez sur <b>Réserver</b> sous le lot puis envoyez un SMS à ${qui} avec le n° de lot.</div>`;
   }
-  if(r==="invite"){
+  if(r==="public"){
     const soon=all.filter(l=>l.dispoLe&&!visible(l)&&typeOf(l)==="dispo").map(invitesLe).sort((a,b)=>a-b);
     return `<div class="phase">Pour réserver, appuyez sur <b>Réserver</b> sous le lot puis envoyez un SMS à ${qui} avec le n° de lot.${soon.length?` <b>${soon.length} lot${soon.length>1?"s":""}</b> arrive${soon.length>1?"nt":""} prochainement, le premier le <b>${esc(fmtJour(soon[0]))}</b>.`:""}</div>`;
   }
   const br=all.filter(l=>!l.dispoLe).length, ex=all.filter(enExclu).length, ou=all.filter(l=>l.dispoLe&&!enExclu(l)).length;
-  return `<div class="phase">Exclusivité famille : <b>${J} jour${J>1?"s":""}</b> après la mise à disposition de chaque lot · Brouillons <b>${br}</b> · En exclusivité famille <b>${ex}</b> · Ouverts aux invités <b>${ou}</b></div>`;
+  return `<div class="phase">Accès après la mise à disposition : ${calendrier()}<br>Brouillons <b>${br}</b> · En avant-première <b>${ex}</b> · Ouverts au public <b>${ou}</b></div>`;
 }
 function adminBox(){
   if(role()!=="admin") return "";
@@ -401,8 +425,9 @@ function renderGrid(){
 }
 function card(l){
   const s=statusOf(l), ty=typeOf(l), r=role(), cover=(l.photos||[])[0];
-  const phase=ty==="parti"?"":r==="admin"?(!l.dispoLe?`<span class="ph-b draft">Brouillon · non visible</span>`:enExclu(l)?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:"")
-    :r==="famille"&&enExclu(l)&&ty==="dispo"?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:"";
+  const bt=badgeTxt(l,r);
+  const phase=ty==="parti"?"":r==="admin"?(!l.dispoLe?`<span class="ph-b draft">Brouillon · non visible</span>`:bt?`<span class="ph-b">${esc(bt)}</span>`:"")
+    :bt&&ty==="dispo"?`<span class="ph-b">${esc(bt)}</span>`:"";
   const pour=r==="admin"&&ty==="reserve"&&l.reservePour?`<span class="holder">Réservé pour ${esc(l.reservePour)}</span>`:"";
   const quick=r==="admin"?`<div class="quick" role="group" aria-label="Statut du lot ${l.no}">${statuts().map(x=>
     `<button data-act="qs" data-id="${esc(l.id)}" data-v="${esc(x.id)}" aria-pressed="${s===x.id}">${esc(x.label)}</button>`).join("")}</div>`
@@ -451,12 +476,12 @@ function lotPanel(id){
       ${l.photos.length>1?`<div class="gcount mono" id="gc">1 / ${l.photos.length}</div>`:""}`:""}
     <h2 class="dtitle" id="dt">${esc(l.titre)}</h2>
     <div class="drow"><span class="bigprice">${fmtPrix(l.prix)}</span><span class="pill s-${ty}">${esc(stLabel(s))}</span>${l.exemple?`<span class="ex">Exemple</span>`:""}</div>
-    ${r==="famille"&&enExclu(l)&&ty==="dispo"?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:""}
+    ${r!=="admin"&&ty==="dispo"&&badgeTxt(l,r)?`<span class="ph-b">${esc(badgeTxt(l,r))}</span>`:""}
     ${l.description?`<p class="desc">${esc(l.description)}</p>`:""}
     ${box}
     ${S.meta.infos&&r!=="admin"?`<p class="note" style="white-space:pre-wrap;margin:0">${esc(S.meta.infos)}</p>`:""}
     ${r==="admin"?`${ty==="reserve"&&l.reservePour?`<div class="warn">Réservé pour <b>${esc(l.reservePour)}</b></div>`:""}
-      <div class="actions">${l.dispoLe?`<span class="note">Mis à disposition le ${esc(fmtShort(l.dispoLe))} · invités le ${esc(fmtShort(invitesLe(l)))}</span>`:`<button class="btn" data-act="publish-lot" data-id="${esc(l.id)}">Mettre à disposition maintenant</button>`}<button class="btn primary" data-act="edit" data-id="${esc(l.id)}">Modifier ce lot</button></div>`:""}
+      <div class="actions">${l.dispoLe?`<span class="note">Mis à disposition le ${esc(fmtShort(l.dispoLe))} · ${calendrier(l.dispoLe)}</span>`:`<button class="btn" data-act="publish-lot" data-id="${esc(l.id)}">Mettre à disposition maintenant</button>`}<button class="btn primary" data-act="edit" data-id="${esc(l.id)}">Modifier ce lot</button></div>`:""}
   </div>`;
 }
 
@@ -469,7 +494,7 @@ function editLot(id){
 }
 function editorPanel(){
   const d=draft;
-  const pieces=[...new Set(PIECES.concat(S.lots.map(l=>l.piece).filter(Boolean)))];
+  const pcs=pieces();
   const cats=categories();
   return `<form class="panel" id="ed" role="dialog" aria-modal="true" aria-labelledby="edt" novalidate>
     <div class="panel-head"><h2 id="edt">${isNewDraft?"Nouveau lot":"Modifier"} · <span class="mono">LOT ${pad(d.no)}</span></h2><button type="button" class="x" data-act="cancel" aria-label="Annuler">×</button></div>
@@ -488,7 +513,7 @@ function editorPanel(){
     </div>
     <div class="row2">
       <div class="field"><label for="f-prix">Prix (€)</label><input id="f-prix" inputmode="decimal" value="${esc(d.prix)}" placeholder="Vide = faire une offre"><span class="hint">0 = gratuit</span></div>
-      <div class="field"><label for="f-piece">Pièce</label><input id="f-piece" list="dl-pieces" value="${esc(d.piece)}" placeholder="Ex. Salon" autocomplete="off"><datalist id="dl-pieces">${pieces.map(p=>`<option value="${esc(p)}">`).join("")}</datalist></div>
+      <div class="field"><label for="f-piece">Pièce</label><input id="f-piece" list="dl-pieces" value="${esc(d.piece)}" placeholder="Ex. Salon" autocomplete="off"><datalist id="dl-pieces">${pcs.map(p=>`<option value="${esc(p)}">`).join("")}</datalist></div>
     </div>
     <div class="field"><span class="lbl" id="st-l">Statut</span>
       <div class="seg" role="radiogroup" aria-labelledby="st-l">${statuts().map(x=>
@@ -500,7 +525,7 @@ function editorPanel(){
         <label><input type="radio" name="mise" value="brouillon" ${d._mise==="brouillon"?"checked":""}><span>Brouillon</span></label>
         <label><input type="radio" name="mise" value="${d.dispoLe?"garder":"maintenant"}" ${d._mise!=="brouillon"?"checked":""}><span>${d.dispoLe?"À disposition":"Disponible maintenant"}</span></label>
       </div>
-      <span class="hint">${d.dispoLe?`Mis à disposition le ${esc(fmtShort(d.dispoLe))} : famille seule jusqu'au ${esc(fmtJour(invitesLe(d)))}, puis ouvert aux invités.`:`Brouillon : visible des seuls administrateurs. « Disponible maintenant » ouvre le lot à la famille tout de suite, puis aux invités ${delaiJ()} jour${delaiJ()>1?"s":""} plus tard.`}</span>
+      <span class="hint">${d.dispoLe?`Mis à disposition le ${esc(fmtShort(d.dispoLe))} · ${calendrier(d.dispoLe)}`:`Brouillon : visible des seuls administrateurs. « Disponible maintenant » démarre le calendrier d'accès : ${calendrier()}.`}</span>
     </div>
     <div class="field"><label for="f-desc">Description du contenu</label><textarea id="f-desc" placeholder="Ce que contient le lot, dimensions, état…">${esc(d.description)}</textarea></div>
     <div class="actions">
@@ -568,7 +593,11 @@ function settingsPanel(){
   const m=S.meta, cs=(m.contacts||[]).concat([{},{}]).slice(0,Math.max(2,(m.contacts||[]).length));
   return `<form class="panel" id="set" role="dialog" aria-modal="true" aria-labelledby="stt" novalidate>
     <div class="panel-head"><h2 id="stt">Configuration</h2><button type="button" class="x" data-act="close" aria-label="Fermer">×</button></div>
-    <div class="field"><label for="m-delai">Exclusivité famille (jours)</label><input id="m-delai" type="number" inputmode="numeric" min="0" max="60" step="1" value="${delaiJ()}" style="max-width:140px"><span class="hint">Délai entre la mise à disposition d'un lot et son ouverture aux invités.</span></div>
+    <div class="field"><span class="lbl">Profils ayant un lien d'accès</span>
+      <div id="pf-rows" class="st-rows"></div>
+      <button type="button" class="btn" data-act="pf-add" style="justify-self:start">+ Ajouter un profil</button>
+      <span class="hint">Chaque profil reçoit son propre lien (dans « Liens à envoyer »). Le délai est le nombre de jours entre la mise à disposition d'un lot et le moment où ce profil le voit. Supprimer un profil désactive son lien.</span></div>
+    <div class="field"><label for="m-delai">Lien public : accès après (jours)</label><input id="m-delai" type="number" inputmode="numeric" min="0" max="60" step="1" value="${delaiJ()}" style="max-width:140px"><span class="hint">Pour toutes les personnes qui ont l'adresse du site sans lien de profil.</span></div>
     <div class="field"><label for="m-titre">Titre de la page</label><input id="m-titre" value="${esc(m.titre)}"></div>
     <div class="field"><label for="m-intro">Texte d'accueil</label><textarea id="m-intro">${esc(m.intro)}</textarea></div>
     <div class="field"><label for="m-infos">Infos pratiques (retrait, réservation)</label><textarea id="m-infos">${esc(m.infos)}</textarea></div>
@@ -577,6 +606,8 @@ function settingsPanel(){
       <span class="hint">Affichés dans la fiche de chaque lot, avec un bouton pour écrire un SMS.</span></div>
     <div class="field"><label for="m-cats">Catégories</label><textarea id="m-cats" rows="8" style="min-height:180px">${esc(categories().join("\n"))}</textarea>
       <span class="hint">Une catégorie par ligne, dans l'ordre où elles sont proposées. Retirer une catégorie ne modifie pas les lots qui l'utilisent déjà.</span></div>
+    <div class="field"><label for="m-pieces">Pièces (emplacements)</label><textarea id="m-pieces" rows="8" style="min-height:180px">${esc(pieces().join("\n"))}</textarea>
+      <span class="hint">Une pièce par ligne, proposées dans la fiche d'un lot. Retirer une pièce ne modifie pas les lots qui l'utilisent déjà.</span></div>
     <div class="field"><span class="lbl">Statuts</span>
       <div id="st-rows" class="st-rows"></div>
       <button type="button" class="btn" data-act="st-add" style="justify-self:start">+ Ajouter un statut</button>
@@ -584,6 +615,18 @@ function settingsPanel(){
     <div class="actions"><div class="end"><button type="button" class="btn ghost" data-act="close">Annuler</button><button class="btn primary" type="submit">Enregistrer</button></div></div>
   </form>`;
 }
+let pfWork=[];
+function renderPfRows(){
+  const el=document.getElementById("pf-rows"); if(!el) return;
+  el.innerHTML=pfWork.map((x,i)=>`<div class="st-row">
+      <input id="pf-n-${i}" value="${esc(x.nom)}" aria-label="Nom du profil ${i+1}" placeholder="Ex. Amis">
+      <span class="pf-delai"><input id="pf-d-${i}" type="number" inputmode="numeric" min="0" max="60" step="1" value="${esc(x.delai)}" aria-label="Délai du profil ${i+1} en jours"> <span class="note">jours</span></span>
+      <span class="note st-used">${x.code?"lien actif":"lien créé à l'enregistrement"}</span>
+      <span class="st-ops"><button type="button" class="btn" data-act="pf-up" data-i="${i}" aria-label="Monter" ${i?"":"disabled"}>↑</button><button type="button" class="btn danger" data-act="pf-del" data-i="${i}" aria-label="Supprimer">×</button></span>
+    </div>`).join("")||`<span class="note">Aucun profil : seul le lien public existe.</span>`;
+}
+function readPfRows(){ pfWork=pfWork.map((x,i)=>{const n=document.getElementById("pf-n-"+i), d=document.getElementById("pf-d-"+i); return Object.assign({},x,{nom:n?n.value.trim():x.nom,delai:d?Math.max(0,Math.round(Number(d.value)||0)):x.delai})}) }
+function slug(t){return String(t).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"profil"}
 let stWork=[];
 function renderStRows(){
   const el=document.getElementById("st-rows"); if(!el) return;
@@ -597,7 +640,7 @@ function renderStRows(){
 }
 function readStRows(){ stWork=stWork.map((x,i)=>{const l=document.getElementById("st-l-"+i), t=document.getElementById("st-t-"+i); return {id:x.id,label:l?l.value.trim():x.label,type:t?t.value:x.type}}) }
 function bindSettings(){
-  stWork=clone(statuts()); renderStRows();
+  stWork=clone(statuts()); renderStRows(); pfWork=clone(profils()); renderPfRows();
   document.getElementById("set").addEventListener("submit",e=>{
     e.preventDefault(); const v=id=>document.getElementById(id).value.trim();
     const J=Math.round(Number(v("m-delai"))); if(!(J>=0&&J<=60)){toast("Indique un délai entre 0 et 60 jours.");return}
@@ -607,9 +650,13 @@ function bindSettings(){
     if(!sts.some(x=>x.type==="dispo")){toast("Il faut au moins un statut au comportement « Réservable ».");return}
     if(new Set(sts.map(x=>x.label.toLowerCase())).size!==sts.length){toast("Deux statuts portent le même nom.");return}
     const cats=[...new Set(v("m-cats").split("\n").map(x=>x.trim()).filter(Boolean))];
-    const vals={titre:v("m-titre")||"Vide-maison",intro:v("m-intro"),infos:v("m-infos"),delaiJours:J,contacts:cs,categories:cats,statuts:sts};
+    const pcs=[...new Set(v("m-pieces").split("\n").map(x=>x.trim()).filter(Boolean))];
+    readPfRows();
+    const pfs=pfWork.filter(x=>x.nom).map(x=>({id:x.id||slug(x.nom)+"-"+Date.now().toString(36),nom:x.nom,delai:x.delai,code:x.code||randCode(slug(x.nom))}));
+    if(new Set(pfs.map(x=>x.nom.toLowerCase())).size!==pfs.length){toast("Deux profils portent le même nom.");return}
+    const vals={titre:v("m-titre")||"Vide-maison",intro:v("m-intro"),infos:v("m-infos"),delaiJours:J,contacts:cs,categories:cats,pieces:pcs,statuts:sts,profils:pfs};
     const oldTypes={}; statuts().forEach(x=>oldTypes[x.id]=x.type);
-    save(data=>{ Object.assign(data.meta,vals); const ids=new Set(sts.map(x=>x.id));
+    save(data=>{ Object.assign(data.meta,vals); delete data.meta.codeFamille; const ids=new Set(sts.map(x=>x.id));
       data.lots.forEach(l=>{ const cur=l.statut||"dispo"; if(!ids.has(cur)){ const t=oldTypes[cur]||"dispo"; const repl=sts.find(x=>x.type===t)||sts.find(x=>x.type==="dispo"); l.statut=repl.id }
         if((sts.find(x=>x.id===l.statut)||{}).type!=="reserve") l.reservePour="" }) },"Configuration enregistrée.");
   });
@@ -617,15 +664,14 @@ function bindSettings(){
 
 /* ---------- Liens et clé (admin) ---------- */
 function linksPanel(){
-  const fam=SITE_URL+"#"+S.meta.codeFamille;
+  const J=delaiJ();
   return `<div class="panel" role="dialog" aria-modal="true" aria-labelledby="lkt">
     <div class="panel-head"><h2 id="lkt">Liens à envoyer</h2><button class="x" data-act="close" aria-label="Fermer">×</button></div>
-    <div class="field"><span class="lbl">Lien famille</span><span class="ref mono" id="lk-fam" style="overflow-wrap:anywhere">${esc(fam)}</span>
-      <div class="cta"><button class="btn primary" data-act="copy-el" data-el="lk-fam">Copier le lien famille</button><button class="btn danger" data-act="new-code">Changer le code</button></div>
-      <span class="hint">À envoyer uniquement à la famille. En l'ouvrant une fois, leur téléphone ou ordinateur garde l'accès famille. Changer le code désactive l'ancien lien.</span></div>
-    <div class="field"><span class="lbl">Lien invités</span><span class="ref mono" id="lk-inv" style="overflow-wrap:anywhere">${esc(SITE_URL)}</span>
-      <div class="cta"><button class="btn" data-act="copy-el" data-el="lk-inv">Copier le lien invités</button></div>
-      <span class="hint">Les invités voient chaque lot une fois l'exclusivité famille terminée.</span></div>
+    ${profils().map((p,i)=>`<div class="field"><span class="lbl">Lien ${esc(p.nom.toLowerCase())} · accès ${p.delai?"J+"+esc(p.delai):"dès la mise en ligne"}</span><span class="ref mono" id="lk-${i}" style="overflow-wrap:anywhere">${esc(SITE_URL+"#"+p.code)}</span>
+      <div class="cta"><button class="btn primary" data-act="copy-el" data-el="lk-${i}">Copier le lien ${esc(p.nom.toLowerCase())}</button><button class="btn danger" data-act="new-code" data-id="${esc(p.id)}">Changer le code</button></div></div>`).join("")}
+    <div class="field"><span class="lbl">Lien public · accès ${J?"J+"+J:"dès la mise en ligne"}</span><span class="ref mono" id="lk-pub" style="overflow-wrap:anywhere">${esc(SITE_URL)}</span>
+      <div class="cta"><button class="btn" data-act="copy-el" data-el="lk-pub">Copier le lien public</button></div></div>
+    <p class="hint" style="margin:0">Chaque lien de profil est à envoyer uniquement aux personnes concernées. En l'ouvrant une fois, leur téléphone ou ordinateur garde cet accès. « Changer le code » désactive l'ancien lien de ce profil.</p>
   </div>`;
 }
 function tokenPanel(){
@@ -672,7 +718,7 @@ function toast(msg){let t=document.getElementById("toast"); if(!t){t=document.cr
 function copyText(el,label){ const t=el.textContent;
   const sel=()=>{const rg=document.createRange();rg.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(rg);toast("Texte sélectionné : copie-le manuellement.")};
   try{navigator.clipboard.writeText(t).then(()=>toast(label+" copié."),sel)}catch(err){sel()} }
-function randCode(){const a="abcdefghjkmnpqrstuvwxyz23456789";let s="famille-";const r=new Uint32Array(5);crypto.getRandomValues(r);for(let i=0;i<5;i++)s+=a[r[i]%a.length];return s}
+function randCode(prefix){const a="abcdefghjkmnpqrstuvwxyz23456789";let s=(prefix||"acces")+"-";const r=new Uint32Array(5);crypto.getRandomValues(r);for(let i=0;i<5;i++)s+=a[r[i]%a.length];return s}
 
 /* ---------- Événements ---------- */
 document.addEventListener("click",e=>{
@@ -694,14 +740,18 @@ document.addEventListener("click",e=>{
     case "edit": editLot(id); break;
     case "cancel": cancelEdit(); break;
     case "settings": showLayer("settings"); break;
+    case "pf-add": readPfRows(); pfWork.push({id:"",nom:"",delai:delaiJ(),code:""}); renderPfRows(); { const i=document.getElementById("pf-n-"+(pfWork.length-1)); if(i) i.focus() } break;
+    case "pf-del": readPfRows(); pfWork.splice(+b.dataset.i,1); renderPfRows(); break;
+    case "pf-up": { readPfRows(); const i=+b.dataset.i; if(i>0){ const t=pfWork[i]; pfWork[i]=pfWork[i-1]; pfWork[i-1]=t } renderPfRows(); break }
     case "st-add": readStRows(); stWork.push({id:"s"+Date.now().toString(36),label:"",type:"reserve"}); renderStRows(); { const i=document.getElementById("st-l-"+(stWork.length-1)); if(i) i.focus() } break;
     case "st-del": readStRows(); stWork.splice(+b.dataset.i,1); renderStRows(); break;
     case "st-up": { readStRows(); const i=+b.dataset.i; if(i>0){ const t=stWork[i]; stWork[i]=stWork[i-1]; stWork[i-1]=t } renderStRows(); break }
     case "links": showLayer("links"); break;
     case "copy-el": copyText(document.getElementById(b.dataset.el),"Lien"); break;
     case "copy": copyText(document.getElementById("ref"),"Référence"); break;
-    case "new-code": { const c=randCode(); save(data=>{data.meta.codeFamille=c},"Nouveau code famille : renvoie le nouveau lien à la famille."); break }
-    case "publish-lot": { const t=Date.now(); save(data=>{const x=data.lots.find(y=>y.id===id); if(x) x.dispoLe=t},"Lot mis à disposition de la famille."); break }
+    case "new-code": { const pf=profilById(id); if(!pf) return; const c=randCode(slug(pf.nom));
+      save(data=>{ if(!Array.isArray(data.meta.profils)||!data.meta.profils.length) data.meta.profils=clone(profils()); delete data.meta.codeFamille; const x=data.meta.profils.find(y=>y.id===id); if(x) x.code=c },`Nouveau lien ${pf.nom.toLowerCase()} : renvoie-le aux personnes concernées.`); break }
+    case "publish-lot": { const t=Date.now(); save(data=>{const x=data.lots.find(y=>y.id===id); if(x) x.dispoLe=t},"Lot mis à disposition."); break }
     case "qs": { const l=byId(id); if(!l||statusOf(l)===b.dataset.v) return; const v=b.dataset.v;
       save(data=>{const x=data.lots.find(y=>y.id===id); if(x){ x.statut=v; if(stDef(v).type!=="reserve") x.reservePour="" }},`Lot ${pad(l.no)} : ${stLabel(v).toLowerCase()}.`); break }
     case "pick-cat": document.getElementById("f-cat").value=b.dataset.v; document.querySelectorAll("#cat-pick .chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b))); break;
@@ -723,7 +773,6 @@ setInterval(async()=>{ if(layerKind||saving) return; const before=JSON.stringify
 
 (async()=>{
   render(); await load();
-  famille=!!(S&&S.meta.codeFamille)&&lsGet("vm-famille")===S.meta.codeFamille;
   checkHash(); render(); fromHash();
 })();
 })();
