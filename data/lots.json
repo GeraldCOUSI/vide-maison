@@ -1894,6 +1894,25 @@
    "dispoLe": 1794750448349,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhw4fpm",
+   "no": 97,
+   "titre": "Barrettes memoire",
+   "categorie": "Informatique & multimédia",
+   "piece": "Clayettes",
+   "description": "Caisse 1",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhw4fpm-mwhw4r6kkw6k.jpg",
+     "t": "photos/lmwhw4fpm-mwhw4r6kkw6k-t.jpg"
+    }
+   ],
+   "dispoLe": 1794750551068,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
