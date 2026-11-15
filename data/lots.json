@@ -235,7 +235,8 @@
     }
    ],
    "dispoLe": 1794743637851,
-   "reservePour": ""
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
