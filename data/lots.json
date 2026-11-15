@@ -3,7 +3,7 @@
   "titre": "Vide-maison",
   "intro": "Tout doit partir ! Parcourez les lots et réservez ceux qui vous intéressent.",
   "infos": "À retirer au 65 route des Villages à Monistrol.\nRéservez vos lots auprès de Gérald avec un SMS au 06.75.22.96.98 indiquant le n° de lot",
-  "delaiJours": 5,
+  "delaiJours": 10,
   "contacts": [
    {
     "nom": "Gérald",
@@ -20,14 +20,64 @@
    {
     "id": "amis",
     "nom": "Amis",
-    "delai": 2,
+    "delai": 5,
     "code": "amis-f9t45"
    },
    {
     "id": "voisins",
     "nom": "Voisins",
-    "delai": 4,
+    "delai": 8,
     "code": "voisins-zsa44"
+   }
+  ],
+  "categories": [
+   "Bricolage",
+   "Jardin",
+   "Vaisselle & cuisine",
+   "Décoration",
+   "Électroménager",
+   "Linge de maison",
+   "Meuble",
+   "Vêtements",
+   "Sport",
+   "Livres",
+   "Jeux et jouets",
+   "Divers"
+  ],
+  "pieces": [
+   "Salon/ Salle à manger",
+   "Cuisine",
+   "Chambre principale",
+   "Chambre Elise",
+   "Chambre Jérémie",
+   "Mezzanine",
+   "Sdb parents",
+   "SdB enfants",
+   "Sdb bureau",
+   "Entrée",
+   "Bureau",
+   "Salle HC",
+   "Cave",
+   "Garage",
+   "Grenier",
+   "Clayettes",
+   "Jardin"
+  ],
+  "statuts": [
+   {
+    "id": "dispo",
+    "label": "Disponible",
+    "type": "dispo"
+   },
+   {
+    "id": "reserve",
+    "label": "Réservé",
+    "type": "reserve"
+   },
+   {
+    "id": "parti",
+    "label": "Parti",
+    "type": "parti"
    }
   ]
  },
