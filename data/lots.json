@@ -25,34 +25,6 @@
    "photos": [],
    "dispoLe": 1793774684949,
    "reservePour": ""
-  },
-  {
-   "id": "ex2",
-   "no": 2,
-   "titre": "Lot de vaisselle (service 12 personnes)",
-   "categorie": "Vaisselle & cuisine",
-   "piece": "Cuisine",
-   "description": "Assiettes plates, creuses et à dessert, porcelaine blanche.",
-   "prix": 35,
-   "statut": "reserve",
-   "photos": [],
-   "dispoLe": null,
-   "reservePour": "",
-   "exemple": true
-  },
-  {
-   "id": "ex3",
-   "no": 3,
-   "titre": "Tondeuse électrique",
-   "categorie": "Jardin",
-   "piece": "Garage",
-   "description": "Fonctionne, bac de ramassage inclus.",
-   "prix": 40,
-   "statut": "parti",
-   "photos": [],
-   "dispoLe": null,
-   "reservePour": "",
-   "exemple": true
   }
  ]
 }
