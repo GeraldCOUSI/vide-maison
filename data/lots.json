@@ -1073,6 +1073,25 @@
    "dispoLe": 1794747111098,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhu3f2v",
+   "no": 53,
+   "titre": "Lave linge Miele",
+   "categorie": "Électroménager",
+   "piece": "Buanderie",
+   "description": "",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhu3f2v-mwhu3urw5n66.jpg",
+     "t": "photos/lmwhu3f2v-mwhu3urw5n66-t.jpg"
+    }
+   ],
+   "dispoLe": 1794747141035,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
