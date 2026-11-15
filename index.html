@@ -511,6 +511,7 @@ function editLot(id){
   const l=id?byId(id):null; isNewDraft=!l;
   draft=l?clone(l):{id:"l"+Date.now().toString(36),no:nextNo(),titre:"",categorie:"",piece:"",description:"",prix:"",statut:firstOfType("dispo"),photos:[],dispoLe:null,reservePour:""};
   draft._mise=isNewDraft?"maintenant":(l.dispoLe?"garder":"brouillon");
+  if(isNewDraft&&foyerId()) draft.reserveFoyer=true; // nouveau lot : réservé à la Famax par défaut
   draft._removed=[]; draft._new=[]; confirmDel=false; showLayer("edit");
 }
 function editorPanel(){
