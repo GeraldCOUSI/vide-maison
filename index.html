@@ -571,7 +571,7 @@ function editorPanel(){
       </div>
       <span class="hint">La première photo sert de couverture. Les photos sont réduites puis envoyées dans le dépôt au moment d'enregistrer.</span>
     </div>
-    <div class="field"><label for="f-titre">Titre</label><input id="f-titre" required value="${esc(d.titre)}" placeholder="Ex. Commode trois tiroirs" autocomplete="off"></div>
+    <div class="field" id="fd-titre"><label for="f-titre">Titre <span class="req">obligatoire</span></label><input id="f-titre" required value="${esc(d.titre)}" placeholder="Ex. Commode trois tiroirs" autocomplete="off"></div>
     <div class="field" id="fd-cat"><label for="f-cat">Catégorie <span class="req">obligatoire</span></label>
       <div class="chips wrapchips" id="cat-pick" role="group" aria-label="Choisir une catégorie">${cats.map(c=>`<button type="button" class="chip" data-act="pick-cat" data-v="${esc(c)}" aria-pressed="${d.categorie===c}">${esc(c)}</button>`).join("")}</div>
       <input id="f-cat" value="${esc(d.categorie||"")}" placeholder="Ou saisis une autre catégorie" autocomplete="off">
@@ -601,7 +601,7 @@ function editorPanel(){
       </div>
       <span class="hint">${d.dispoLe?`Mis à disposition le ${esc(fmtShort(d.dispoLe))} · ${calendrierLot(d)}`:`Brouillon : visible des seuls administrateurs. « Disponible maintenant » démarre le calendrier d'accès : ${calendrier()}.`}</span>
     </div>
-    <div class="field" id="fd-desc"><label for="f-desc">Description du contenu <span class="req">obligatoire</span></label><textarea id="f-desc" placeholder="Ce que contient le lot, dimensions, état…">${esc(d.description)}</textarea></div>
+    <div class="field" id="fd-desc"><label for="f-desc">Description du contenu</label><textarea id="f-desc" placeholder="Ce que contient le lot, dimensions, état…">${esc(d.description)}</textarea></div>
     <div class="actions">
       ${isNewDraft?"":`<div>${confirmDel?`<div class="confirm"><span>Supprimer définitivement ce lot ?</span><button type="button" class="btn danger" data-act="del-yes">Supprimer</button><button type="button" class="btn ghost" data-act="del-no">Non</button></div>`:`<button type="button" class="btn danger" data-act="del">Supprimer</button>`}</div>`}
       <div class="end"><button type="button" class="btn ghost" data-act="cancel">Annuler</button><button type="submit" class="btn primary" id="save">Enregistrer</button></div>
@@ -620,7 +620,7 @@ function marquer(id,on){ const el=document.getElementById(id); if(el) el.classLi
 function bindEditor(){
   catManuelle=!!draft.categorie;
   document.getElementById("ed").addEventListener("submit",e=>{e.preventDefault();saveLot()});
-  ["f-titre","f-desc"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{ proposerCategorie(); if(id==="f-desc"&&document.getElementById(id).value.trim()) marquer("fd-desc",false) }));
+  ["f-titre","f-desc"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{ proposerCategorie(); if(id==="f-titre"&&document.getElementById(id).value.trim()) marquer("fd-titre",false) }));
   document.getElementById("f-cat").addEventListener("input",()=>{ catManuelle=true; marquer("fd-cat",false) });
   document.getElementById("f-piece").addEventListener("change",()=>marquer("fd-piece",false));
   document.getElementById("cam").addEventListener("change",e=>{addFiles(e.target.files);e.target.value=""});
@@ -667,9 +667,8 @@ async function addFiles(list){
 function cancelEdit(){ closeLayer() }
 async function saveLot(){
   readForm();
-  if(!draft.titre){toast("Donne un titre au lot.");document.getElementById("f-titre").focus();return}
-  const manque=[["categorie","fd-cat","f-cat","la catégorie"],["piece","fd-piece","f-piece","la pièce"],["description","fd-desc","f-desc","la description"]].filter(x=>!draft[x[0]]);
-  ["fd-cat","fd-piece","fd-desc"].forEach(id=>marquer(id,manque.some(x=>x[1]===id)));
+  const manque=[["titre","fd-titre","f-titre","le titre"],["categorie","fd-cat","f-cat","la catégorie"],["piece","fd-piece","f-piece","la pièce"]].filter(x=>!draft[x[0]]);
+  ["fd-titre","fd-cat","fd-piece","fd-desc"].forEach(id=>marquer(id,manque.some(x=>x[1]===id)));
   if(manque.length){ toast("À compléter avant d'enregistrer : "+manque.map(x=>x[3]).join(", ")+"."); const f=document.getElementById(manque[0][2]); f.focus(); f.scrollIntoView({block:"center"}); return }
   const d=clone(draft); const kept=new Set(d.photos.flatMap(p=>[p.id,p.t]));
   const uploads=draft._new.filter(n=>kept.has(n.path)); const removed=draft._removed.slice();
