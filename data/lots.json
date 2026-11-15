@@ -1571,6 +1571,25 @@
    "dispoLe": 1794748298494,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhutes2",
+   "no": 80,
+   "titre": "Bureaux G",
+   "categorie": "Meuble",
+   "piece": "Bureau",
+   "description": "",
+   "prix": "",
+   "statut": "reserve",
+   "photos": [
+    {
+     "id": "photos/lmwhutes2-mwhutnix33hz.jpg",
+     "t": "photos/lmwhutes2-mwhutnix33hz-t.jpg"
+    }
+   ],
+   "dispoLe": 1794748355446,
+   "reservePour": "Gérald",
+   "reserveFoyer": true
   }
  ]
 }
