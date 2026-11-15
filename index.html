@@ -98,7 +98,7 @@ h1{font-size:clamp(34px,7vw,64px);font-weight:800;letter-spacing:-.02em;margin-t
 .stamp span{font-family:var(--f-display);font-weight:800;font-size:26px;letter-spacing:.08em;text-transform:uppercase;padding:2px 14px;border:3px solid currentColor;border-radius:6px;transform:rotate(-12deg);background:color-mix(in srgb,var(--card) 70%,transparent)}
 .lot.parti .ph img{filter:grayscale(1) contrast(.9);opacity:.7}
 .lot.parti .stamp{color:var(--gone)} .lot.reserve .stamp{color:var(--hold)}
-.quick{display:flex;border-top:1px solid var(--line)}
+.quick{display:flex;flex-wrap:wrap;border-top:1px solid var(--line)}
 .quick button{flex:1;border:0;background:transparent;padding:9px 4px;font-size:13px;font-weight:700;color:var(--muted);min-height:40px}
 .quick button+button{border-left:1px solid var(--line)}
 .quick button[aria-pressed="true"]{color:var(--paper);background:var(--ink)}
@@ -134,7 +134,7 @@ h1{font-size:clamp(34px,7vw,64px);font-weight:800;letter-spacing:-.02em;margin-t
 .hint{font-size:13px;color:var(--muted)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:420px){.row2{grid-template-columns:1fr}}
-.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .seg label{flex:1;text-align:center;padding:10px 4px;font-weight:700;font-size:14px;cursor:pointer;background:var(--card)}
 .seg label+label{border-left:1px solid var(--line)}
 .seg input{position:absolute;opacity:0;pointer-events:none}
@@ -192,6 +192,12 @@ table.rs{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
 .rs .acts{display:flex;gap:6px;justify-content:flex-end}
 .rs .acts .btn{min-height:34px;padding:5px 10px;font-size:13px}
 .field input[type="datetime-local"]{min-height:44px}
+.st-rows{display:grid;gap:8px}
+.st-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) auto auto;gap:8px;align-items:center}
+.st-row input,.st-row select{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 10px;font-size:16px;min-width:0}
+.st-ops{display:flex;gap:6px}.st-ops .btn{min-height:40px;padding:6px 12px}
+.st-used{white-space:nowrap}
+@media (max-width:480px){.st-row{grid-template-columns:1fr 1fr}.st-used{grid-column:1}.st-ops{justify-content:flex-end}}
 .linkbtn{border:0;background:none;padding:0;margin-left:10px;color:var(--muted);text-decoration:underline;font-size:13px;cursor:pointer}
 .warn{border-left:3px solid var(--hold);padding:8px 12px;background:var(--card);border-radius:0 8px 8px 0;font-size:14px}
 </style>
@@ -208,7 +214,8 @@ table.rs{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
 const OWNER="GeraldCOUSI", REPO="vide-maison", BRANCH="main", DATA="data/lots.json";
 const SITE_URL="https://geraldcousi.github.io/vide-maison/";
 const API="https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/";
-const ST={dispo:"Disponible",reserve:"Réservé",parti:"Parti"};
+const TYPES={dispo:"Réservable",reserve:"Réservé",parti:"Retiré de la vente"};
+const DEF_STATUTS=[{id:"dispo",label:"Disponible",type:"dispo"},{id:"reserve",label:"Réservé",type:"reserve"},{id:"parti",label:"Parti",type:"parti"}];
 const PIECES=["Salon","Salle à manger","Cuisine","Chambre","Bureau","Salle de bain","Entrée","Cave","Grenier","Garage","Jardin"];
 const CATS=["Meuble","Vêtements","Bricolage","Sport","Livres","Vaisselle & cuisine","Décoration","Électroménager","Linge de maison","Jardin","Jouets","Divers"];
 const app=document.getElementById("app");
@@ -244,7 +251,13 @@ function invitesLe(l){return l.dispoLe?l.dispoLe+delaiJ()*864e5:null}
 function enExclu(l){return !!l.dispoLe&&Date.now()<invitesLe(l)}
 function role(){ if(admin&&gestion) return "admin"; if(admin) return vue; return famille?"famille":"invite" }
 function visible(l){ const r=role(); if(r==="admin") return true; if(!l.dispoLe) return false; return r==="famille"?Date.now()>=l.dispoLe:Date.now()>=invitesLe(l) }
-function statusOf(l){return l.statut||"dispo"}
+function statuts(){const l=(S&&S.meta.statuts)||[]; return l.length?l:DEF_STATUTS}
+function categories(){const l=S&&S.meta.categories; return Array.isArray(l)&&l.length?l:CATS}
+function stDef(id){return statuts().find(x=>x.id===id)||statuts().find(x=>x.type==="dispo")||DEF_STATUTS[0]}
+function statusOf(l){return stDef(l.statut).id}
+function typeOf(l){return stDef(l.statut).type}
+function stLabel(id){return stDef(id).label}
+function firstOfType(t){const x=statuts().find(y=>y.type===t); return x?x.id:statuts()[0].id}
 function contacts(){return (S.meta.contacts||[]).filter(c=>c&&(c.nom||c.tel))}
 function smsHref(t,body){return "sms:"+String(t).replace(/[^\d+]/g,"")+"?&body="+encodeURIComponent(body)}
 
@@ -343,11 +356,11 @@ function phaseMsg(){
   const r=role(), J=delaiJ(), all=lotList(), cs=contacts();
   const qui=cs.length?cs.map(c=>esc(c.nom)).join(" ou "):"l'organisateur";
   if(r==="famille"){
-    const ex=all.filter(l=>visible(l)&&enExclu(l)&&statusOf(l)==="dispo").length;
+    const ex=all.filter(l=>visible(l)&&enExclu(l)&&typeOf(l)==="dispo").length;
     return `<div class="phase">Chaque lot vous est proposé en <b>exclusivité pendant ${J} jour${J>1?"s":""}</b> après sa mise en ligne, avant d'être ouvert aux invités.${ex?` En ce moment : <b>${ex} lot${ex>1?"s":""} en exclusivité</b>.`:""} Pour réserver, appuyez sur <b>Réserver</b> sous le lot puis envoyez un SMS à ${qui} avec le n° de lot.</div>`;
   }
   if(r==="invite"){
-    const soon=all.filter(l=>l.dispoLe&&!visible(l)&&statusOf(l)==="dispo").map(invitesLe).sort((a,b)=>a-b);
+    const soon=all.filter(l=>l.dispoLe&&!visible(l)&&typeOf(l)==="dispo").map(invitesLe).sort((a,b)=>a-b);
     return `<div class="phase">Pour réserver, appuyez sur <b>Réserver</b> sous le lot puis envoyez un SMS à ${qui} avec le n° de lot.${soon.length?` <b>${soon.length} lot${soon.length>1?"s":""}</b> arrive${soon.length>1?"nt":""} prochainement, le premier le <b>${esc(fmtJour(soon[0]))}</b>.`:""}</div>`;
   }
   const br=all.filter(l=>!l.dispoLe).length, ex=all.filter(enExclu).length, ou=all.filter(l=>l.dispoLe&&!enExclu(l)).length;
@@ -355,27 +368,24 @@ function phaseMsg(){
 }
 function adminBox(){
   if(role()!=="admin") return "";
-  const t={dispo:[0,0],reserve:[0,0],parti:[0,0]};
+  const t={}; statuts().forEach(x=>t[x.id]=[0,0]);
   S.lots.forEach(l=>{const p=Number(l.prix)||0; t[statusOf(l)][0]++; t[statusOf(l)][1]+=p});
   const ex=S.lots.filter(l=>l.exemple).length;
   return `<section class="admin" aria-label="Gestion">
-    <div class="sums">
-      <span class="s-dispo">Disponibles <b>${t.dispo[0]}</b> · ${eur(t.dispo[1])}</span>
-      <span class="s-reserve">Réservés <b>${t.reserve[0]}</b> · ${eur(t.reserve[1])}</span>
-      <span class="s-parti">Partis <b>${t.parti[0]}</b> · ${eur(t.parti[1])}</span>
-    </div>
+    <div class="sums">${statuts().map(x=>`<span class="s-${x.type}">${esc(x.label)} <b>${t[x.id][0]}</b> · ${eur(t[x.id][1])}</span>`).join("")}</div>
     <div class="admin-row" style="justify-content:flex-start">
       <button class="btn" data-act="links">Liens à envoyer</button>
-      <button class="btn ghost" data-act="settings">Infos et délai</button>
+      <button class="btn ghost" data-act="settings">Configuration</button>
     </div>
     ${ex?`<div class="admin-row"><span class="note">${ex} lot${ex>1?"s":""} d'exemple, à supprimer avant d'envoyer les liens.</span><button class="btn danger" data-act="del-ex">Supprimer les exemples</button></div>`:""}
   </section>`;
 }
 function renderGrid(){
   const all=lotList().filter(visible), r=role();
-  const n={tous:all.length,dispo:0,reserve:0,parti:0}; all.forEach(l=>n[statusOf(l)]++);
-  document.getElementById("c-statut").innerHTML=["tous","dispo","reserve","parti"].map(k=>
-    `<button class="chip" data-act="fs" data-v="${k}" aria-pressed="${F.statut===k}">${k==="tous"?"Tous":ST[k]+"s"}<span class="n">${n[k]}</span></button>`).join("");
+  const n={tous:all.length}; statuts().forEach(x=>n[x.id]=0); all.forEach(l=>n[statusOf(l)]++);
+  if(F.statut!=="tous"&&!(F.statut in n)) F.statut="tous";
+  document.getElementById("c-statut").innerHTML=[{id:"tous",label:"Tous"}].concat(statuts().filter(x=>r==="admin"||n[x.id])).map(x=>
+    `<button class="chip" data-act="fs" data-v="${esc(x.id)}" aria-pressed="${F.statut===x.id}">${esc(x.label)}<span class="n">${n[x.id]}</span></button>`).join("");
   const row=(id,key,field,label)=>{const vals=[...new Set(all.map(l=>l[field]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"fr"));
     const el=document.getElementById(id); el.hidden=vals.length<2;
     el.innerHTML=[`<button class="chip" data-act="f-${key}" data-v="" aria-pressed="${!F[key]}">${label}</button>`]
@@ -390,26 +400,26 @@ function renderGrid(){
   g.innerHTML=vis.map(card).join("");
 }
 function card(l){
-  const s=statusOf(l), r=role(), cover=(l.photos||[])[0];
-  const phase=s==="parti"?"":r==="admin"?(!l.dispoLe?`<span class="ph-b draft">Brouillon · non visible</span>`:enExclu(l)?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:"")
-    :r==="famille"&&enExclu(l)&&s==="dispo"?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:"";
-  const pour=r==="admin"&&s==="reserve"&&l.reservePour?`<span class="holder">Réservé pour ${esc(l.reservePour)}</span>`:"";
-  const quick=r==="admin"?`<div class="quick" role="group" aria-label="Statut du lot ${l.no}">${["dispo","reserve","parti"].map(k=>
-    `<button data-act="qs" data-id="${esc(l.id)}" data-v="${k}" aria-pressed="${s===k}">${ST[k]}</button>`).join("")}</div>`
-    :s==="dispo"?`<div class="cardcta"><button class="btn primary" data-act="resa" data-id="${esc(l.id)}">Réserver</button></div>`:"";
-  return `<article class="lot ${s}">
+  const s=statusOf(l), ty=typeOf(l), r=role(), cover=(l.photos||[])[0];
+  const phase=ty==="parti"?"":r==="admin"?(!l.dispoLe?`<span class="ph-b draft">Brouillon · non visible</span>`:enExclu(l)?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:"")
+    :r==="famille"&&enExclu(l)&&ty==="dispo"?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:"";
+  const pour=r==="admin"&&ty==="reserve"&&l.reservePour?`<span class="holder">Réservé pour ${esc(l.reservePour)}</span>`:"";
+  const quick=r==="admin"?`<div class="quick" role="group" aria-label="Statut du lot ${l.no}">${statuts().map(x=>
+    `<button data-act="qs" data-id="${esc(l.id)}" data-v="${esc(x.id)}" aria-pressed="${s===x.id}">${esc(x.label)}</button>`).join("")}</div>`
+    :ty==="dispo"?`<div class="cardcta"><button class="btn primary" data-act="resa" data-id="${esc(l.id)}">Réserver</button></div>`:"";
+  return `<article class="lot ${ty}">
     <button class="open" data-act="open" data-id="${esc(l.id)}" aria-label="Voir le lot ${l.no} : ${esc(l.titre)}">
       <div class="ph">
         ${cover?`<img src="${esc(src(cover.t||cover.id))}" alt="" loading="lazy">`:`<div class="none">${pad(l.no)}</div>`}
         <span class="tag">LOT ${pad(l.no)}</span>
         ${(l.photos||[]).length>1?`<span class="count">${l.photos.length} photos</span>`:""}
-        ${s!=="dispo"?`<div class="stamp"><span>${ST[s]}</span></div>`:""}
+        ${ty!=="dispo"?`<div class="stamp"><span>${esc(stLabel(s))}</span></div>`:""}
       </div>
       <div class="body">
         ${l.exemple?`<span class="ex">Exemple</span>`:""}
         ${l.categorie?`<span class="cat">${esc(l.categorie)}</span>`:""}
         <h3>${esc(l.titre)}</h3>
-        <div class="meta"><span class="price">${fmtPrix(l.prix)}</span><span class="pill s-${s}">${ST[s]}</span></div>
+        <div class="meta"><span class="price">${fmtPrix(l.prix)}</span><span class="pill s-${ty}">${esc(stLabel(s))}</span></div>
         ${l.piece?`<span class="piece">${esc(l.piece)}</span>`:""}
         ${phase}${pour}
       </div>
@@ -432,20 +442,20 @@ function reserveBox(l){
 function lotPanel(id){
   const l=byId(id);
   if(!l||!visible(l)) return `<div class="panel"><div class="panel-head"><h2>Ce lot n'est pas disponible</h2><button class="x" data-act="close" aria-label="Fermer">×</button></div></div>`;
-  const s=statusOf(l), r=role();
-  const box=r==="admin"?"":s==="parti"?`<div class="reserve-box"><p>Ce lot est parti.</p></div>`
-    :s==="reserve"?`<div class="reserve-box"><span class="lbl">Ce lot est déjà réservé</span><p>Il peut redevenir disponible : revenez plus tard.</p></div>`:reserveBox(l);
+  const s=statusOf(l), ty=typeOf(l), r=role();
+  const box=r==="admin"?"":ty==="parti"?`<div class="reserve-box"><p>Ce lot n'est plus disponible (${esc(stLabel(s).toLowerCase())}).</p></div>`
+    :ty==="reserve"?`<div class="reserve-box"><span class="lbl">Ce lot est déjà réservé</span><p>Il peut redevenir disponible : revenez plus tard.</p></div>`:reserveBox(l);
   return `<div class="panel" role="dialog" aria-modal="true" aria-labelledby="dt">
     <div class="panel-head"><span class="eyebrow">Lot ${pad(l.no)}${l.categorie?" · "+esc(l.categorie):""}${l.piece?" · "+esc(l.piece):""}</span><button class="x" data-act="close" aria-label="Fermer">×</button></div>
     ${(l.photos||[]).length?`<div class="gallery" id="gal">${l.photos.map((p,i)=>`<img src="${esc(src(p.id))}" alt="Photo ${i+1} du lot ${l.no}">`).join("")}</div>
       ${l.photos.length>1?`<div class="gcount mono" id="gc">1 / ${l.photos.length}</div>`:""}`:""}
     <h2 class="dtitle" id="dt">${esc(l.titre)}</h2>
-    <div class="drow"><span class="bigprice">${fmtPrix(l.prix)}</span><span class="pill s-${s}">${ST[s]}</span>${l.exemple?`<span class="ex">Exemple</span>`:""}</div>
-    ${r==="famille"&&enExclu(l)&&s==="dispo"?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:""}
+    <div class="drow"><span class="bigprice">${fmtPrix(l.prix)}</span><span class="pill s-${ty}">${esc(stLabel(s))}</span>${l.exemple?`<span class="ex">Exemple</span>`:""}</div>
+    ${r==="famille"&&enExclu(l)&&ty==="dispo"?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:""}
     ${l.description?`<p class="desc">${esc(l.description)}</p>`:""}
     ${box}
     ${S.meta.infos&&r!=="admin"?`<p class="note" style="white-space:pre-wrap;margin:0">${esc(S.meta.infos)}</p>`:""}
-    ${r==="admin"?`${s==="reserve"&&l.reservePour?`<div class="warn">Réservé pour <b>${esc(l.reservePour)}</b></div>`:""}
+    ${r==="admin"?`${ty==="reserve"&&l.reservePour?`<div class="warn">Réservé pour <b>${esc(l.reservePour)}</b></div>`:""}
       <div class="actions">${l.dispoLe?`<span class="note">Mis à disposition le ${esc(fmtShort(l.dispoLe))} · invités le ${esc(fmtShort(invitesLe(l)))}</span>`:`<button class="btn" data-act="publish-lot" data-id="${esc(l.id)}">Mettre à disposition maintenant</button>`}<button class="btn primary" data-act="edit" data-id="${esc(l.id)}">Modifier ce lot</button></div>`:""}
   </div>`;
 }
@@ -453,14 +463,14 @@ function lotPanel(id){
 /* ---------- Édition (admin) ---------- */
 function editLot(id){
   const l=id?byId(id):null; isNewDraft=!l;
-  draft=l?clone(l):{id:"l"+Date.now().toString(36),no:nextNo(),titre:"",categorie:"",piece:"",description:"",prix:"",statut:"dispo",photos:[],dispoLe:null,reservePour:""};
+  draft=l?clone(l):{id:"l"+Date.now().toString(36),no:nextNo(),titre:"",categorie:"",piece:"",description:"",prix:"",statut:firstOfType("dispo"),photos:[],dispoLe:null,reservePour:""};
   draft._mise=isNewDraft?"maintenant":(l.dispoLe?"garder":"brouillon");
   draft._removed=[]; draft._new=[]; confirmDel=false; showLayer("edit");
 }
 function editorPanel(){
   const d=draft;
   const pieces=[...new Set(PIECES.concat(S.lots.map(l=>l.piece).filter(Boolean)))];
-  const cats=[...new Set(CATS.concat(S.lots.map(l=>l.categorie).filter(Boolean)))];
+  const cats=categories();
   return `<form class="panel" id="ed" role="dialog" aria-modal="true" aria-labelledby="edt" novalidate>
     <div class="panel-head"><h2 id="edt">${isNewDraft?"Nouveau lot":"Modifier"} · <span class="mono">LOT ${pad(d.no)}</span></h2><button type="button" class="x" data-act="cancel" aria-label="Annuler">×</button></div>
     <div class="field"><span class="lbl">Photos</span>
@@ -481,8 +491,8 @@ function editorPanel(){
       <div class="field"><label for="f-piece">Pièce</label><input id="f-piece" list="dl-pieces" value="${esc(d.piece)}" placeholder="Ex. Salon" autocomplete="off"><datalist id="dl-pieces">${pieces.map(p=>`<option value="${esc(p)}">`).join("")}</datalist></div>
     </div>
     <div class="field"><span class="lbl" id="st-l">Statut</span>
-      <div class="seg" role="radiogroup" aria-labelledby="st-l">${["dispo","reserve","parti"].map(k=>
-        `<label><input type="radio" name="st" id="st-${k}" value="${k}" ${d.statut===k?"checked":""}><span>${ST[k]}</span></label>`).join("")}</div>
+      <div class="seg" role="radiogroup" aria-labelledby="st-l">${statuts().map(x=>
+        `<label><input type="radio" name="st" value="${esc(x.id)}" ${statusOf(d)===x.id?"checked":""}><span>${esc(x.label)}</span></label>`).join("")}</div>
     </div>
     <div class="field"><label for="f-pour">Réservé pour</label><input id="f-pour" value="${esc(d.reservePour||"")}" placeholder="Ex. Marie (cousine)" autocomplete="off"><span class="hint">Affiché seulement en mode gestion. N'indique qu'un prénom : le fichier de données est public.</span></div>
     <div class="field"><span class="lbl" id="mise-l">Mise à disposition</span>
@@ -548,7 +558,7 @@ async function saveLot(){
   const uploads=draft._new.filter(n=>kept.has(n.path)); const removed=draft._removed.slice();
   delete d.exemple; delete d._new; delete d._removed;
   if(d._mise==="brouillon") d.dispoLe=null; else if(!d.dispoLe) d.dispoLe=Date.now();
-  delete d._mise; if(d.statut!=="reserve") d.reservePour="";
+  delete d._mise; if(stDef(d.statut).type!=="reserve") d.reservePour="";
   const ok=await save(data=>{const i=data.lots.findIndex(l=>l.id===d.id); if(i>=0) data.lots[i]=d; else data.lots.push(d)},`Lot ${pad(d.no)} enregistré.`,uploads);
   if(ok) removed.forEach(p=>ghDelete(p,"Suppression "+p));
 }
@@ -557,7 +567,7 @@ async function saveLot(){
 function settingsPanel(){
   const m=S.meta, cs=(m.contacts||[]).concat([{},{}]).slice(0,Math.max(2,(m.contacts||[]).length));
   return `<form class="panel" id="set" role="dialog" aria-modal="true" aria-labelledby="stt" novalidate>
-    <div class="panel-head"><h2 id="stt">Infos et délai</h2><button type="button" class="x" data-act="close" aria-label="Fermer">×</button></div>
+    <div class="panel-head"><h2 id="stt">Configuration</h2><button type="button" class="x" data-act="close" aria-label="Fermer">×</button></div>
     <div class="field"><label for="m-delai">Exclusivité famille (jours)</label><input id="m-delai" type="number" inputmode="numeric" min="0" max="60" step="1" value="${delaiJ()}" style="max-width:140px"><span class="hint">Délai entre la mise à disposition d'un lot et son ouverture aux invités.</span></div>
     <div class="field"><label for="m-titre">Titre de la page</label><input id="m-titre" value="${esc(m.titre)}"></div>
     <div class="field"><label for="m-intro">Texte d'accueil</label><textarea id="m-intro">${esc(m.intro)}</textarea></div>
@@ -565,16 +575,43 @@ function settingsPanel(){
     <div class="field"><span class="lbl">Contacts pour réserver</span>
       ${cs.map((c,i)=>`<div class="row2"><input id="c-nom-${i}" value="${esc(c.nom||"")}" placeholder="Prénom" aria-label="Prénom du contact ${i+1}"><input id="c-tel-${i}" value="${esc(c.tel||"")}" placeholder="06.xx.xx.xx.xx" inputmode="tel" aria-label="Téléphone du contact ${i+1}"></div>`).join("")}
       <span class="hint">Affichés dans la fiche de chaque lot, avec un bouton pour écrire un SMS.</span></div>
+    <div class="field"><label for="m-cats">Catégories</label><textarea id="m-cats" rows="8" style="min-height:180px">${esc(categories().join("\n"))}</textarea>
+      <span class="hint">Une catégorie par ligne, dans l'ordre où elles sont proposées. Retirer une catégorie ne modifie pas les lots qui l'utilisent déjà.</span></div>
+    <div class="field"><span class="lbl">Statuts</span>
+      <div id="st-rows" class="st-rows"></div>
+      <button type="button" class="btn" data-act="st-add" style="justify-self:start">+ Ajouter un statut</button>
+      <span class="hint">Le comportement décide de ce que voient les visiteurs : « Réservable » affiche le bouton Réserver, « Réservé » affiche le lot comme pris, « Retiré de la vente » l'affiche grisé. Il faut au moins un statut réservable. Les lots d'un statut supprimé passent au premier statut du même comportement.</span></div>
     <div class="actions"><div class="end"><button type="button" class="btn ghost" data-act="close">Annuler</button><button class="btn primary" type="submit">Enregistrer</button></div></div>
   </form>`;
 }
+let stWork=[];
+function renderStRows(){
+  const el=document.getElementById("st-rows"); if(!el) return;
+  el.innerHTML=stWork.map((x,i)=>{const used=S.lots.filter(l=>statusOf(l)===x.id).length;
+    return `<div class="st-row">
+      <input id="st-l-${i}" value="${esc(x.label)}" aria-label="Nom du statut ${i+1}" placeholder="Nom du statut">
+      <select id="st-t-${i}" aria-label="Comportement du statut ${i+1}">${Object.keys(TYPES).map(t=>`<option value="${t}" ${x.type===t?"selected":""}>${TYPES[t]}</option>`).join("")}</select>
+      <span class="note st-used">${used} lot${used>1?"s":""}</span>
+      <span class="st-ops"><button type="button" class="btn" data-act="st-up" data-i="${i}" aria-label="Monter" ${i?"":"disabled"}>↑</button><button type="button" class="btn danger" data-act="st-del" data-i="${i}" aria-label="Supprimer">×</button></span>
+    </div>`}).join("");
+}
+function readStRows(){ stWork=stWork.map((x,i)=>{const l=document.getElementById("st-l-"+i), t=document.getElementById("st-t-"+i); return {id:x.id,label:l?l.value.trim():x.label,type:t?t.value:x.type}}) }
 function bindSettings(){
+  stWork=clone(statuts()); renderStRows();
   document.getElementById("set").addEventListener("submit",e=>{
     e.preventDefault(); const v=id=>document.getElementById(id).value.trim();
     const J=Math.round(Number(v("m-delai"))); if(!(J>=0&&J<=60)){toast("Indique un délai entre 0 et 60 jours.");return}
     const cs=[]; for(let i=0;document.getElementById("c-nom-"+i);i++){const nom=v("c-nom-"+i),tel=v("c-tel-"+i); if(nom||tel) cs.push({nom,tel})}
-    const vals={titre:v("m-titre")||"Vide-maison",intro:v("m-intro"),infos:v("m-infos"),delaiJours:J,contacts:cs};
-    save(data=>Object.assign(data.meta,vals),"Infos enregistrées.");
+    readStRows();
+    const sts=stWork.filter(x=>x.label);
+    if(!sts.some(x=>x.type==="dispo")){toast("Il faut au moins un statut au comportement « Réservable ».");return}
+    if(new Set(sts.map(x=>x.label.toLowerCase())).size!==sts.length){toast("Deux statuts portent le même nom.");return}
+    const cats=[...new Set(v("m-cats").split("\n").map(x=>x.trim()).filter(Boolean))];
+    const vals={titre:v("m-titre")||"Vide-maison",intro:v("m-intro"),infos:v("m-infos"),delaiJours:J,contacts:cs,categories:cats,statuts:sts};
+    const oldTypes={}; statuts().forEach(x=>oldTypes[x.id]=x.type);
+    save(data=>{ Object.assign(data.meta,vals); const ids=new Set(sts.map(x=>x.id));
+      data.lots.forEach(l=>{ const cur=l.statut||"dispo"; if(!ids.has(cur)){ const t=oldTypes[cur]||"dispo"; const repl=sts.find(x=>x.type===t)||sts.find(x=>x.type==="dispo"); l.statut=repl.id }
+        if((sts.find(x=>x.id===l.statut)||{}).type!=="reserve") l.reservePour="" }) },"Configuration enregistrée.");
   });
 }
 
@@ -657,13 +694,16 @@ document.addEventListener("click",e=>{
     case "edit": editLot(id); break;
     case "cancel": cancelEdit(); break;
     case "settings": showLayer("settings"); break;
+    case "st-add": readStRows(); stWork.push({id:"s"+Date.now().toString(36),label:"",type:"reserve"}); renderStRows(); { const i=document.getElementById("st-l-"+(stWork.length-1)); if(i) i.focus() } break;
+    case "st-del": readStRows(); stWork.splice(+b.dataset.i,1); renderStRows(); break;
+    case "st-up": { readStRows(); const i=+b.dataset.i; if(i>0){ const t=stWork[i]; stWork[i]=stWork[i-1]; stWork[i-1]=t } renderStRows(); break }
     case "links": showLayer("links"); break;
     case "copy-el": copyText(document.getElementById(b.dataset.el),"Lien"); break;
     case "copy": copyText(document.getElementById("ref"),"Référence"); break;
     case "new-code": { const c=randCode(); save(data=>{data.meta.codeFamille=c},"Nouveau code famille : renvoie le nouveau lien à la famille."); break }
     case "publish-lot": { const t=Date.now(); save(data=>{const x=data.lots.find(y=>y.id===id); if(x) x.dispoLe=t},"Lot mis à disposition de la famille."); break }
     case "qs": { const l=byId(id); if(!l||statusOf(l)===b.dataset.v) return; const v=b.dataset.v;
-      save(data=>{const x=data.lots.find(y=>y.id===id); if(x){ x.statut=v; if(v!=="reserve") x.reservePour="" }},`Lot ${pad(l.no)} : ${ST[v].toLowerCase()}.`); break }
+      save(data=>{const x=data.lots.find(y=>y.id===id); if(x){ x.statut=v; if(stDef(v).type!=="reserve") x.reservePour="" }},`Lot ${pad(l.no)} : ${stLabel(v).toLowerCase()}.`); break }
     case "pick-cat": document.getElementById("f-cat").value=b.dataset.v; document.querySelectorAll("#cat-pick .chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b))); break;
     case "ph-cov": { readForm(); const i=+b.dataset.i; draft.photos.unshift(draft.photos.splice(i,1)[0]); renderPhotos(); break }
     case "ph-del": { readForm(); const p=draft.photos.splice(+b.dataset.i,1)[0]; if(p&&!blobURL[p.id]) draft._removed.push(p.id,p.t); renderPhotos(); break }
