@@ -263,6 +263,7 @@ function delaiJ(){const d=S.meta.delaiJours; return typeof d==="number"&&d>=0?d:
    Le lien public (sans code) a son propre délai : meta.delaiJours. */
 function profils(){ const p=S&&S.meta.profils; if(Array.isArray(p)&&p.length) return p;
   return S&&S.meta.codeFamille?[{id:"famille",nom:"Famille",code:S.meta.codeFamille,delai:0}]:[] }
+function nomsResa(){ const l=S&&S.meta.nomsResa; return Array.isArray(l)?l:["Magali","Gérald","Baptiste","Elise","Jérémie"] }
 function pieces(){ const l=S&&S.meta.pieces; return Array.isArray(l)&&l.length?l:PIECES }
 function profilById(id){return profils().find(p=>p.id===id)}
 function monProfil(){ const p=profils().find(x=>x.code&&x.code===monCode); return p?p.id:null }
@@ -585,7 +586,9 @@ function editorPanel(){
       <div class="seg" role="radiogroup" aria-labelledby="st-l">${statuts().map(x=>
         `<label><input type="radio" name="st" value="${esc(x.id)}" ${statusOf(d)===x.id?"checked":""}><span>${esc(x.label)}</span></label>`).join("")}</div>
     </div>
-    <div class="field"><label for="f-pour">Réservé pour</label><input id="f-pour" value="${esc(d.reservePour||"")}" placeholder="Ex. Marie (cousine)" autocomplete="off"><span class="hint">Affiché seulement en mode gestion. N'indique qu'un prénom : le fichier de données est public.</span></div>
+    <div class="field"><label for="f-pour">Réservé pour</label>
+      ${nomsResa().length?`<div class="chips wrapchips" id="pour-pick" role="group" aria-label="Noms fréquents">${nomsResa().map(n=>`<button type="button" class="chip" data-act="pick-pour" data-v="${esc(n)}" aria-pressed="${d.reservePour===n}">${esc(n)}</button>`).join("")}</div>`:""}
+      <input id="f-pour" value="${esc(d.reservePour||"")}" placeholder="Touche un nom ou saisis-en un autre" autocomplete="off"><span class="hint">Affiché seulement en mode gestion. N'indique qu'un prénom : le fichier de données est public.</span></div>
     ${foyerId()?`<div class="field">
       <label class="switch" for="f-fam"><input type="checkbox" role="switch" id="f-fam" ${auFoyer(d)?"checked":""}><span class="track" aria-hidden="true"></span><span>Réservé à ${esc(foyerNom())}</span></label>
       <span class="hint">Activé : le lot n'est visible que par ${esc(foyerNom())}. Désactivé : le lot est rendu disponible à ce moment-là et suit le calendrier : ${calendrier()}.</span>
@@ -623,6 +626,7 @@ function bindEditor(){
   ["f-titre","f-desc"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{ proposerCategorie(); if(id==="f-titre"&&document.getElementById(id).value.trim()) marquer("fd-titre",false) }));
   document.getElementById("f-cat").addEventListener("input",()=>{ catManuelle=true; marquer("fd-cat",false) });
   document.getElementById("f-piece").addEventListener("change",()=>marquer("fd-piece",false));
+  document.getElementById("f-pour").addEventListener("input",e=>{ const v=e.target.value.trim(); document.querySelectorAll("#pour-pick .chip").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.v===v))) });
   document.getElementById("cam").addEventListener("change",e=>{addFiles(e.target.files);e.target.value=""});
   document.getElementById("lib").addEventListener("change",e=>{addFiles(e.target.files);e.target.value=""});
   renderPhotos();
@@ -703,6 +707,8 @@ function settingsPanel(){
       <span class="hint">Affichés dans la fiche de chaque lot, avec un bouton pour écrire un SMS.</span></div>
     <div class="field"><label for="m-cats">Catégories</label><textarea id="m-cats" rows="8" style="min-height:180px">${esc(categories().join("\n"))}</textarea>
       <span class="hint">Une catégorie par ligne, dans l'ordre où elles sont proposées. Retirer une catégorie ne modifie pas les lots qui l'utilisent déjà.</span></div>
+    <div class="field"><label for="m-noms">Noms proposés pour « Réservé pour »</label><textarea id="m-noms" rows="5" style="min-height:120px">${esc(nomsResa().join("\n"))}</textarea>
+      <span class="hint">Un prénom par ligne. Ils s'affichent en boutons dans la fiche d'un lot.</span></div>
     <div class="field"><label for="m-pieces">Pièces (emplacements)</label><textarea id="m-pieces" rows="8" style="min-height:180px">${esc(pieces().join("\n"))}</textarea>
       <span class="hint">Une pièce par ligne, proposées dans la fiche d'un lot. Retirer une pièce ne modifie pas les lots qui l'utilisent déjà.</span></div>
     <div class="field"><span class="lbl">Statuts</span>
@@ -748,10 +754,11 @@ function bindSettings(){
     if(new Set(sts.map(x=>x.label.toLowerCase())).size!==sts.length){toast("Deux statuts portent le même nom.");return}
     const cats=[...new Set(v("m-cats").split("\n").map(x=>x.trim()).filter(Boolean))];
     const pcs=[...new Set(v("m-pieces").split("\n").map(x=>x.trim()).filter(Boolean))];
+    const noms=[...new Set(v("m-noms").split("\n").map(x=>x.trim()).filter(Boolean))];
     readPfRows();
     const pfs=pfWork.filter(x=>x.nom).map(x=>({id:x.id||slug(x.nom)+"-"+Date.now().toString(36),nom:x.nom,delai:x.delai,code:x.code||randCode(slug(x.nom))}));
     if(new Set(pfs.map(x=>x.nom.toLowerCase())).size!==pfs.length){toast("Deux profils portent le même nom.");return}
-    const vals={titre:v("m-titre")||"Vide-maison",intro:v("m-intro"),infos:v("m-infos"),delaiJours:J,contacts:cs,categories:cats,pieces:pcs,statuts:sts,profils:pfs};
+    const vals={titre:v("m-titre")||"Vide-maison",intro:v("m-intro"),infos:v("m-infos"),delaiJours:J,contacts:cs,categories:cats,pieces:pcs,nomsResa:noms,statuts:sts,profils:pfs};
     const oldTypes={}; statuts().forEach(x=>oldTypes[x.id]=x.type);
     save(data=>{ Object.assign(data.meta,vals); delete data.meta.codeFamille; const ids=new Set(sts.map(x=>x.id));
       data.lots.forEach(l=>{ const cur=l.statut||"dispo"; if(!ids.has(cur)){ const t=oldTypes[cur]||"dispo"; const repl=sts.find(x=>x.type===t)||sts.find(x=>x.type==="dispo"); l.statut=repl.id }
@@ -852,6 +859,10 @@ document.addEventListener("click",e=>{
     case "publish-lot": { const t=Date.now(); save(data=>{const x=data.lots.find(y=>y.id===id); if(x) x.dispoLe=t},"Lot mis à disposition."); break }
     case "qs": { const l=byId(id); if(!l||statusOf(l)===b.dataset.v) return; const v=b.dataset.v;
       save(data=>{const x=data.lots.find(y=>y.id===id); if(x){ x.statut=v; if(stDef(v).type!=="reserve") x.reservePour="" }},`Lot ${pad(l.no)} : ${stLabel(v).toLowerCase()}.`); break }
+    case "pick-pour": { const inp=document.getElementById("f-pour"), on=b.getAttribute("aria-pressed")!=="true";
+      inp.value=on?b.dataset.v:""; document.querySelectorAll("#pour-pick .chip").forEach(c=>c.setAttribute("aria-pressed",String(on&&c===b)));
+      if(on){ const cur=document.querySelector('input[name="st"]:checked'); if(!cur||stDef(cur.value).type!=="reserve"){ const r=document.querySelector(`input[name="st"][value="${firstOfType("reserve")}"]`); if(r) r.checked=true } }
+      break }
     case "pick-cat": catManuelle=true; marquer("fd-cat",false); { const h=document.getElementById("cat-auto"); if(h) h.textContent="Catégorie choisie." } document.getElementById("f-cat").value=b.dataset.v; document.querySelectorAll("#cat-pick .chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b))); break;
     case "ph-cov": { readForm(); const i=+b.dataset.i; draft.photos.unshift(draft.photos.splice(i,1)[0]); renderPhotos(); break }
     case "ph-del": { readForm(); const p=draft.photos.splice(+b.dataset.i,1)[0]; if(p&&!blobURL[p.id]) draft._removed.push(p.id,p.t); renderPhotos(); break }
