@@ -1875,6 +1875,25 @@
    "dispoLe": 1794749976217,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhw24iq",
+   "no": 96,
+   "titre": "Câbles divers de montage de PC",
+   "categorie": "Informatique & multimédia",
+   "piece": "Clayettes",
+   "description": "Caisse 1",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhw24iq-mwhw2jmajxsi.jpg",
+     "t": "photos/lmwhw24iq-mwhw2jmajxsi-t.jpg"
+    }
+   ],
+   "dispoLe": 1794750448349,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
