@@ -1443,6 +1443,25 @@
    "dispoLe": 1794747946623,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhum548",
+   "no": 73,
+   "titre": "Clic clac",
+   "categorie": "Meuble",
+   "piece": "Salle HC",
+   "description": "",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhum548-mwhumejvqtih.jpg",
+     "t": "photos/lmwhum548-mwhumejvqtih-t.jpg"
+    }
+   ],
+   "dispoLe": 1794748015054,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
