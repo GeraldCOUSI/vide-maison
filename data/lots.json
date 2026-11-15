@@ -1254,7 +1254,12 @@
    "description": "",
    "prix": "",
    "statut": "reserve",
-   "photos": [],
+   "photos": [
+    {
+     "id": "photos/lmwhuber0-mwhucgwlkw9h.jpg",
+     "t": "photos/lmwhuber0-mwhucgwlkw9h-t.jpg"
+    }
+   ],
    "dispoLe": 1794747524820,
    "reservePour": "Gérald",
    "reserveFoyer": true
