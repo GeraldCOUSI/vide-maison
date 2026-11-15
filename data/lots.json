@@ -90,6 +90,21 @@
     "id": "parti",
     "label": "Parti",
     "type": "parti"
+   },
+   {
+    "id": "revente",
+    "label": "Revente leboncoin / Vinted",
+    "type": "parti"
+   },
+   {
+    "id": "recyclerie",
+    "label": "Recyclerie",
+    "type": "parti"
+   },
+   {
+    "id": "dechetterie",
+    "label": "Déchetterie",
+    "type": "parti"
    }
   ]
  },
