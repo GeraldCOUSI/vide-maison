@@ -2046,6 +2046,25 @@
    "dispoLe": 1794752029171,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhx0y48",
+   "no": 105,
+   "titre": "Chargeur accu",
+   "categorie": "Électroménager",
+   "piece": "Clayettes",
+   "description": "Caisse 2\nPas d’alimentation",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhx0y48-mwhx13xjaeae.jpg",
+     "t": "photos/lmwhx0y48-mwhx13xjaeae-t.jpg"
+    }
+   ],
+   "dispoLe": 1794752098463,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
