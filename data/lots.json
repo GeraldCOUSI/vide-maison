@@ -83,19 +83,6 @@
  },
  "lots": [
   {
-   "id": "ex1",
-   "no": 1,
-   "titre": "Buffet en chêne deux portes",
-   "categorie": "Meuble",
-   "piece": "Salon",
-   "description": "Buffet bas, deux portes et deux tiroirs.\nL 140 × P 45 × H 85 cm. Quelques rayures sur le plateau.",
-   "prix": 125,
-   "statut": "reserve",
-   "photos": [],
-   "dispoLe": 1793774684949,
-   "reservePour": ""
-  },
-  {
    "id": "lmwhlx089",
    "no": 2,
    "titre": "Ordinateur Multi média",
