@@ -1970,6 +1970,25 @@
    "dispoLe": 1794751150212,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhwrbiq",
+   "no": 101,
+   "titre": "Imprimante photo",
+   "categorie": "Informatique & multimédia",
+   "piece": "Clayettes",
+   "description": "Caisse 2\nPas dalimentation",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhwrbiq-mwhwsiyq0bxs.jpg",
+     "t": "photos/lmwhwrbiq-mwhwsiyq0bxs-t.jpg"
+    }
+   ],
+   "dispoLe": 1794751676370,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
