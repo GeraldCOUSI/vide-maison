@@ -128,7 +128,7 @@
    "id": "lmwhrdqgx",
    "no": 4,
    "titre": "Four à micro ondes",
-   "categorie": "",
+   "categorie": "Électroménager",
    "piece": "Cuisine",
    "description": "",
    "prix": "",
@@ -140,7 +140,8 @@
     }
    ],
    "dispoLe": 1794742600951,
-   "reservePour": ""
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
