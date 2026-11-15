@@ -580,7 +580,7 @@
    "piece": "Chambre Elise",
    "description": "",
    "prix": "",
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwhsgpn1-mwhsh98f37b1.jpg",
@@ -588,7 +588,7 @@
     }
    ],
    "dispoLe": 1794744413198,
-   "reservePour": "",
+   "reservePour": "Magali",
    "reserveFoyer": true
   },
   {
