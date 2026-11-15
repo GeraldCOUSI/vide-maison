@@ -384,6 +384,25 @@
    "dispoLe": 1794744001490,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhs8s20",
+   "no": 18,
+   "titre": "Enceintes Édifier",
+   "categorie": "Électroménager",
+   "piece": "Salon/ Salle à manger",
+   "description": "",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhs8s20-mwhs9b3m919b.jpg",
+     "t": "photos/lmwhs8s20-mwhs9b3m919b-t.jpg"
+    }
+   ],
+   "dispoLe": 1794744051000,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
