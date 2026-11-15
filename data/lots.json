@@ -68,6 +68,7 @@
    "Sdb bureau",
    "Entrée",
    "Bureau",
+   "Buanderie",
    "Salle HC",
    "Cave",
    "Garage",
@@ -106,6 +107,13 @@
     "label": "Déchetterie",
     "type": "parti"
    }
+  ],
+  "nomsResa": [
+   "Magali",
+   "Gérald",
+   "Baptiste",
+   "Elise",
+   "Jérémie"
   ]
  },
  "lots": [
