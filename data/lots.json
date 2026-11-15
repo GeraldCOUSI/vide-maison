@@ -21,7 +21,7 @@
    "piece": "Salon",
    "description": "Buffet bas, deux portes et deux tiroirs.\nL 140 × P 45 × H 85 cm. Quelques rayures sur le plateau.",
    "prix": 125,
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [],
    "dispoLe": 1793774684949,
    "reservePour": ""
