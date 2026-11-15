@@ -2268,7 +2268,7 @@
    "piece": "Clayettes",
    "description": "",
    "prix": "",
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwi2b3ug-mwi2bc0wt845.jpg",
@@ -2276,7 +2276,7 @@
     }
    ],
    "dispoLe": 1794760940003,
-   "reservePour": "",
+   "reservePour": "Jérémie",
    "reserveFoyer": true
   },
   {
