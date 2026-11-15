@@ -626,6 +626,25 @@
    "dispoLe": 1794744648243,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhsmsz2",
+   "no": 31,
+   "titre": "Bibliothèques couloir",
+   "categorie": "Meuble",
+   "piece": "Salon/ Salle à manger",
+   "description": "",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhsmsz2-mwhsnjyfcmbz.jpg",
+     "t": "photos/lmwhsmsz2-mwhsnjyfcmbz-t.jpg"
+    }
+   ],
+   "dispoLe": 1794744705693,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
