@@ -200,6 +200,9 @@ table.rs{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
 .switch input:checked+.track{background:var(--hold)}
 .switch input:checked+.track::after{transform:translateX(20px)}
 .switch input:focus-visible+.track{outline:3px solid var(--accent);outline-offset:2px}
+.req{font-family:var(--f-mono);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-left:6px}
+.field.invalid label,.field.invalid .req{color:var(--danger)}
+.field.invalid input,.field.invalid textarea,.field.invalid select{border-color:var(--danger);box-shadow:0 0 0 1px var(--danger)}
 .st-rows{display:grid;gap:8px}
 .st-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) auto auto;gap:8px;align-items:center}
 .st-row input,.st-row select{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 10px;font-size:16px;min-width:0}
@@ -294,6 +297,36 @@ function badgeTxt(l,r){
   const ouverts=open.filter(a=>a.id!==foyerId()); // le foyer (les vendeurs) ne compte pas pour l'exclusivité
   if(ouverts.length===1&&ouverts[0].id===r) return `Exclusivité ${ouverts[0].nom.toLowerCase()} jusqu'au ${fmtJour(next.t)}`;
   return enExclu(l)?`Avant-première jusqu'au ${fmtJour(invitesLe(l))}`:"";
+}
+/* ---------- Catégorie proposée d'après le titre et la description ----------
+   Trois sources : le nom des catégories, un dictionnaire de mots courants, et les lots déjà classés. */
+const KW={
+ meuble:"buffet,commode,armoire,table,chaise,fauteuil,canape,lit,matelas,sommier,etagere,bibliotheque,bureau,meuble,tabouret,banc,vaisselier,bahut,console,chevet,table de nuit,penderie,placard,secretaire,desserte,bergere,chauffeuse,pouf,dressing,coiffeuse,tiroir",
+ vetement:"vetement,pantalon,jean,chemise,chemisier,robe,manteau,veste,pull,gilet,jupe,chaussure,botte,basket,blouson,tee shirt,t shirt,sac a main,ceinture,echarpe,costume,anorak,parka,doudoune,sweat",
+ bricolage:"perceuse,visseuse,marteau,tournevis,scie,outil,outillage,cle,ponceuse,etabli,echelle,escabeau,meuleuse,niveau,pince,clou,bricolage,compresseur,rabot,serre joint,caisse a outil,decapeur",
+ sport:"velo,raquette,ski,ballon,tennis,golf,fitness,haltere,rameur,tapis de course,trottinette,roller,sport,randonnee,camping,tente,peche,kayak,velo d appartement,ping pong,petanque,surf",
+ livre:"livre,roman,bd,bande dessinee,encyclopedie,dictionnaire,magazine,revue,manuel,poche,album",
+ vaisselle:"assiette,verre,tasse,bol,couvert,casserole,poele,plat,saladier,vaisselle,service,cocotte,theiere,ustensile,moule,faitout,carafe,robot,magimix,mixeur,blender,thermomix,batteur,robot menager,cuisine",
+ decoration:"cadre,tableau,vase,lampe,miroir,bougie,decoration,deco,statue,sculpture,tapis,horloge,luminaire,applique,lustre,bibelot,coussin,affiche,poster,plante artificielle",
+ electromenager:"refrigerateur,frigo,congelateur,lave linge,lave vaisselle,seche linge,four,micro onde,aspirateur,fer a repasser,table a repasser,bouilloire,grille pain,cafetiere,televiseur,tv,tele,radio,ventilateur,chauffage,radiateur,climatiseur,electromenager,hotte,plaque,enceinte,hifi,ampli,lecteur dvd,barre de son",
+ informatique:"ordinateur,pc,portable,imprimante,ecran,clavier,souris,tablette,scanner,disque dur,routeur,informatique,multimedia,webcam",
+ linge:"drap,housse,couette,oreiller,nappe,serviette,torchon,plaid,couverture,linge,parure,taie,rideau,voilage,edredon",
+ jardin:"tondeuse,taille haie,rateau,pelle,beche,arrosoir,tuyau,jardin,salon de jardin,parasol,barbecue,plancha,pot,jardiniere,brouette,debroussailleuse,souffleur,serre,transat,chaise longue,secateur",
+ jouet:"jouet,jeu,poupee,peluche,lego,playmobil,puzzle,voiture miniature,train electrique,jeu de societe,console de jeu,poussette,doudou,jeux video,nintendo,playstation"
+};
+const STOP=new Set("avec pour les des une dans sans tous toutes tout toute ses son sur par plus tres bon etat petit petite grand grande gros grosse lot et de du la le en au aux".split(" "));
+function normTxt(t){return String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim()}
+function toks(t){return normTxt(t).split(" ").filter(w=>w.length>1&&!STOP.has(w)).map(w=>w.length>3?w.replace(/(s|x)$/,""):w)}
+function devinerCategorie(texte){
+  const tk=toks(texte); if(!tk.length) return null;
+  const set=new Set(tk), joined=" "+tk.join(" ")+" ", sc=new Map();
+  categories().forEach(c=>{ const cw=toks(c); let n=0;
+    cw.forEach(w=>{ if(w.length>3&&set.has(w)) n+=3 });
+    Object.keys(KW).forEach(k=>{ if(cw.includes(k)) KW[k].split(",").forEach(kw=>{ const kp=toks(kw), kt=kp.join(" "); if(kt&&joined.includes(" "+kt+" ")) n+=kp.length>1?3*kp.length:2 }) });
+    sc.set(c,n) });
+  S.lots.forEach(l=>{ if(!l.categorie||!sc.has(l.categorie)||(draft&&l.id===draft.id)) return;
+    const lt=new Set(toks((l.titre||"")+" "+(l.description||""))); tk.forEach(w=>{ if(w.length>2&&lt.has(w)) sc.set(l.categorie,sc.get(l.categorie)+0.5) }) });
+  let best=null,bs=0; sc.forEach((v,k)=>{ if(v>bs){bs=v;best=k} }); return best;
 }
 function statuts(){const l=(S&&S.meta.statuts)||[]; return l.length?l:DEF_STATUTS}
 function categories(){const l=S&&S.meta.categories; return Array.isArray(l)&&l.length?l:CATS}
@@ -529,13 +562,14 @@ function editorPanel(){
       <span class="hint">La première photo sert de couverture. Les photos sont réduites puis envoyées dans le dépôt au moment d'enregistrer.</span>
     </div>
     <div class="field"><label for="f-titre">Titre</label><input id="f-titre" required value="${esc(d.titre)}" placeholder="Ex. Commode trois tiroirs" autocomplete="off"></div>
-    <div class="field"><label for="f-cat">Catégorie</label>
+    <div class="field" id="fd-cat"><label for="f-cat">Catégorie <span class="req">obligatoire</span></label>
       <div class="chips wrapchips" id="cat-pick" role="group" aria-label="Choisir une catégorie">${cats.map(c=>`<button type="button" class="chip" data-act="pick-cat" data-v="${esc(c)}" aria-pressed="${d.categorie===c}">${esc(c)}</button>`).join("")}</div>
       <input id="f-cat" value="${esc(d.categorie||"")}" placeholder="Ou saisis une autre catégorie" autocomplete="off">
+      <span class="hint" id="cat-auto">Proposée automatiquement d'après le titre et la description. Touche une autre catégorie pour la changer.</span>
     </div>
     <div class="row2">
       <div class="field"><label for="f-prix">Prix (€)</label><input id="f-prix" inputmode="decimal" value="${esc(d.prix)}" placeholder="Vide = faire une offre"><span class="hint">0 = gratuit</span></div>
-      <div class="field"><label for="f-piece">Pièce</label><select id="f-piece" class="sel"><option value="">— Choisir une pièce —</option>${(d.piece&&!pcs.includes(d.piece)?[d.piece]:[]).concat(pcs).map(p=>`<option value="${esc(p)}" ${d.piece===p?"selected":""}>${esc(p)}</option>`).join("")}</select><span class="hint">Liste modifiable dans Configuration.</span></div>
+      <div class="field" id="fd-piece"><label for="f-piece">Pièce <span class="req">obligatoire</span></label><select id="f-piece" class="sel"><option value="">— Choisir une pièce —</option>${(d.piece&&!pcs.includes(d.piece)?[d.piece]:[]).concat(pcs).map(p=>`<option value="${esc(p)}" ${d.piece===p?"selected":""}>${esc(p)}</option>`).join("")}</select><span class="hint">Liste modifiable dans Configuration.</span></div>
     </div>
     <div class="field"><span class="lbl" id="st-l">Statut</span>
       <div class="seg" role="radiogroup" aria-labelledby="st-l">${statuts().map(x=>
@@ -553,15 +587,28 @@ function editorPanel(){
       </div>
       <span class="hint">${d.dispoLe?`Mis à disposition le ${esc(fmtShort(d.dispoLe))} · ${calendrierLot(d)}`:`Brouillon : visible des seuls administrateurs. « Disponible maintenant » démarre le calendrier d'accès : ${calendrier()}.`}</span>
     </div>
-    <div class="field"><label for="f-desc">Description du contenu</label><textarea id="f-desc" placeholder="Ce que contient le lot, dimensions, état…">${esc(d.description)}</textarea></div>
+    <div class="field" id="fd-desc"><label for="f-desc">Description du contenu <span class="req">obligatoire</span></label><textarea id="f-desc" placeholder="Ce que contient le lot, dimensions, état…">${esc(d.description)}</textarea></div>
     <div class="actions">
       ${isNewDraft?"":`<div>${confirmDel?`<div class="confirm"><span>Supprimer définitivement ce lot ?</span><button type="button" class="btn danger" data-act="del-yes">Supprimer</button><button type="button" class="btn ghost" data-act="del-no">Non</button></div>`:`<button type="button" class="btn danger" data-act="del">Supprimer</button>`}</div>`}
       <div class="end"><button type="button" class="btn ghost" data-act="cancel">Annuler</button><button type="submit" class="btn primary" id="save">Enregistrer</button></div>
     </div>
   </form>`;
 }
+let catManuelle=false;
+function proposerCategorie(){
+  if(catManuelle||!draft) return;
+  const g=devinerCategorie(document.getElementById("f-titre").value+" "+document.getElementById("f-desc").value);
+  const hint=document.getElementById("cat-auto");
+  if(g){ document.getElementById("f-cat").value=g; document.querySelectorAll("#cat-pick .chip").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.v===g)));
+    if(hint) hint.innerHTML=`Proposée d'après le titre et la description : <b>${esc(g)}</b>. Touche une autre catégorie pour la changer.`; marquer("fd-cat",false) }
+}
+function marquer(id,on){ const el=document.getElementById(id); if(el) el.classList.toggle("invalid",!!on) }
 function bindEditor(){
+  catManuelle=!!draft.categorie;
   document.getElementById("ed").addEventListener("submit",e=>{e.preventDefault();saveLot()});
+  ["f-titre","f-desc"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{ proposerCategorie(); if(id==="f-desc"&&document.getElementById(id).value.trim()) marquer("fd-desc",false) }));
+  document.getElementById("f-cat").addEventListener("input",()=>{ catManuelle=true; marquer("fd-cat",false) });
+  document.getElementById("f-piece").addEventListener("change",()=>marquer("fd-piece",false));
   document.getElementById("cam").addEventListener("change",e=>{addFiles(e.target.files);e.target.value=""});
   document.getElementById("lib").addEventListener("change",e=>{addFiles(e.target.files);e.target.value=""});
   renderPhotos();
@@ -606,6 +653,9 @@ function cancelEdit(){ closeLayer() }
 async function saveLot(){
   readForm();
   if(!draft.titre){toast("Donne un titre au lot.");document.getElementById("f-titre").focus();return}
+  const manque=[["categorie","fd-cat","f-cat","la catégorie"],["piece","fd-piece","f-piece","la pièce"],["description","fd-desc","f-desc","la description"]].filter(x=>!draft[x[0]]);
+  ["fd-cat","fd-piece","fd-desc"].forEach(id=>marquer(id,manque.some(x=>x[1]===id)));
+  if(manque.length){ toast("À compléter avant d'enregistrer : "+manque.map(x=>x[3]).join(", ")+"."); const f=document.getElementById(manque[0][2]); f.focus(); f.scrollIntoView({block:"center"}); return }
   const d=clone(draft); const kept=new Set(d.photos.flatMap(p=>[p.id,p.t]));
   const uploads=draft._new.filter(n=>kept.has(n.path)); const removed=draft._removed.slice();
   delete d.exemple; delete d._new; delete d._removed;
@@ -785,7 +835,7 @@ document.addEventListener("click",e=>{
     case "publish-lot": { const t=Date.now(); save(data=>{const x=data.lots.find(y=>y.id===id); if(x) x.dispoLe=t},"Lot mis à disposition."); break }
     case "qs": { const l=byId(id); if(!l||statusOf(l)===b.dataset.v) return; const v=b.dataset.v;
       save(data=>{const x=data.lots.find(y=>y.id===id); if(x){ x.statut=v; if(stDef(v).type!=="reserve") x.reservePour="" }},`Lot ${pad(l.no)} : ${stLabel(v).toLowerCase()}.`); break }
-    case "pick-cat": document.getElementById("f-cat").value=b.dataset.v; document.querySelectorAll("#cat-pick .chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b))); break;
+    case "pick-cat": catManuelle=true; marquer("fd-cat",false); { const h=document.getElementById("cat-auto"); if(h) h.textContent="Catégorie choisie." } document.getElementById("f-cat").value=b.dataset.v; document.querySelectorAll("#cat-pick .chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b))); break;
     case "ph-cov": { readForm(); const i=+b.dataset.i; draft.photos.unshift(draft.photos.splice(i,1)[0]); renderPhotos(); break }
     case "ph-del": { readForm(); const p=draft.photos.splice(+b.dataset.i,1)[0]; if(p&&!blobURL[p.id]) draft._removed.push(p.id,p.t); renderPhotos(); break }
     case "del": readForm(); confirmDel=true; showLayer("edit"); break;
