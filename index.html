@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Notre vide-maison</title>
+<meta name="description" content="Catalogue du vide-maison : lots, photos, prix et réservation par SMS.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vide-maison">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M8 30 32 10l24 20v24H8z' fill='%232f5d50'/%3E%3Crect x='26' y='38' width='12' height='16' fill='%23f2c94c'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+<style>
+/* Mise en page : catalogue d'étiquettes de brocante — grille de lots, fiche en volet, mode gestion par-dessus */
+:root{
+  --paper:#f2f3ee; --card:#fbfbf7; --ink:#1c211e; --muted:#5d6861; --line:#d7dbd1;
+  --tag:#f2c94c; --tag-ink:#2a2306; --accent:#2f5d50; --on-accent:#ffffff;
+  --ok:#2e7d4f; --hold:#a86a12; --gone:#767b77; --danger:#b3261e; --shade:rgba(20,24,22,.55);
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#131715; --card:#1b201d; --ink:#e7eae4; --muted:#9ba59e; --line:#2d3530;
+  --tag:#e2bb42; --tag-ink:#1f1904; --accent:#86bfaa; --on-accent:#0e1a15;
+  --ok:#6cc290; --hold:#e3a94e; --gone:#8b918c; --danger:#f2867e; --shade:rgba(0,0,0,.65); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#131715; --card:#1b201d; --ink:#e7eae4; --muted:#9ba59e; --line:#2d3530;
+  --tag:#e2bb42; --tag-ink:#1f1904; --accent:#86bfaa; --on-accent:#0e1a15;
+  --ok:#6cc290; --hold:#e3a94e; --gone:#8b918c; --danger:#f2867e; --shade:rgba(0,0,0,.65); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* En-tête */
+.top{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;padding-top:28px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(34px,7vw,64px);font-weight:800;letter-spacing:-.02em;margin-top:6px}
+.intro{max-width:62ch;color:var(--ink);margin:12px 0 0;white-space:pre-wrap}
+.infos{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:14px;color:var(--muted);font-size:15px;white-space:pre-wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 16px;font-weight:700;font-size:15px;min-height:42px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--danger);border-color:var(--danger);background:transparent}
+.btn[disabled]{opacity:.5;cursor:default}
+
+/* Bandeau gestion */
+.admin{margin-top:20px;border:1px dashed var(--accent);border-radius:14px;padding:14px 16px;display:grid;gap:12px}
+.admin-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.sums{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px}
+.sums b{font-family:var(--f-mono);font-size:16px}
+.note{font-size:14px;color:var(--muted)}
+
+/* Barre de filtres */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding-block:14px 12px;margin-top:18px;border-bottom:1px solid var(--line);display:grid;gap:10px}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:14px;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip .n{font-family:var(--f-mono);opacity:.7;margin-left:4px}
+.search{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;font-size:16px}
+
+/* Grille de lots */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px;margin-top:18px}
+@media (min-width:700px){.grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:22px}}
+.lot{position:relative;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;text-align:left;padding:0;min-width:0}
+.open{display:flex;flex-direction:column;flex:1;border:0;background:transparent;padding:0;text-align:left;color:inherit;font:inherit;width:100%}
+.open:focus-visible{outline-offset:-3px}
+.lot:hover .ph img{transform:scale(1.03)}
+.ph{position:relative;aspect-ratio:4/3;max-width:100%;background:var(--line);overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.ph .none{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:44px;color:var(--muted);opacity:.45;
+  background:repeating-linear-gradient(-45deg,transparent 0 10px,color-mix(in srgb,var(--muted) 12%,transparent) 10px 11px)}
+.ph .count{position:absolute;right:8px;bottom:8px;background:var(--shade);color:#fff;font-family:var(--f-mono);font-size:12px;border-radius:6px;padding:2px 6px}
+.tag{position:absolute;left:10px;top:10px;background:var(--tag);color:var(--tag-ink);font-family:var(--f-mono);font-weight:600;font-size:12px;letter-spacing:.06em;padding:4px 9px 4px 18px;border-radius:3px 6px 6px 3px;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.tag::before{content:"";position:absolute;left:6px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--card);box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.body{display:grid;gap:6px;padding:12px 12px 14px;min-width:0}
+.body h3{font-size:17px;font-weight:600;overflow-wrap:anywhere}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.price{font-family:var(--f-mono);font-weight:600;font-size:17px}
+.piece{font-size:13px;color:var(--muted)}
+.cat{font-family:var(--f-mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.wrapchips{flex-wrap:wrap;overflow:visible}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.s-dispo{color:var(--ok)} .s-reserve{color:var(--hold)} .s-parti{color:var(--gone)}
+.ex{font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 5px;justify-self:start}
+.stamp{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.stamp span{font-family:var(--f-display);font-weight:800;font-size:26px;letter-spacing:.08em;text-transform:uppercase;padding:2px 14px;border:3px solid currentColor;border-radius:6px;transform:rotate(-12deg);background:color-mix(in srgb,var(--card) 70%,transparent)}
+.lot.parti .ph img{filter:grayscale(1) contrast(.9);opacity:.7}
+.lot.parti .stamp{color:var(--gone)} .lot.reserve .stamp{color:var(--hold)}
+.quick{display:flex;border-top:1px solid var(--line)}
+.quick button{flex:1;border:0;background:transparent;padding:9px 4px;font-size:13px;font-weight:700;color:var(--muted);min-height:40px}
+.quick button+button{border-left:1px solid var(--line)}
+.quick button[aria-pressed="true"]{color:var(--paper);background:var(--ink)}
+.empty{grid-column:1/-1;padding:48px 8px;text-align:center;color:var(--muted)}
+.empty h2{color:var(--ink);font-size:24px;margin-bottom:8px}
+
+/* Volets (fiche, édition, réglages) */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--shade);display:flex;align-items:flex-end;justify-content:center}
+.panel{background:var(--paper);width:100%;max-width:640px;max-height:100%;overflow:auto;border-radius:18px 18px 0 0;
+  padding:18px max(18px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));
+  padding-top:calc(18px + env(safe-area-inset-top,0px));display:grid;gap:16px;align-content:start}
+@media (min-width:700px){.sheet{align-items:center;padding:24px}.panel{border-radius:18px;max-height:92vh;padding-top:22px}}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.panel-head h2{font-size:22px}
+.x{border:1px solid var(--line);background:var(--card);border-radius:50%;width:42px;height:42px;font-size:22px;line-height:1;flex:none}
+.gallery{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:8px;border-radius:12px;scrollbar-width:none}
+.gallery::-webkit-scrollbar{display:none}
+.gallery img{flex:none;width:100%;max-height:62vh;object-fit:contain;background:var(--line);scroll-snap-align:center;border-radius:12px}
+.gcount{text-align:center;font-family:var(--f-mono);font-size:13px;color:var(--muted);margin-top:-8px}
+.dtitle{font-size:28px;font-weight:800}
+.drow{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.bigprice{background:var(--tag);color:var(--tag-ink);font-family:var(--f-mono);font-weight:600;font-size:22px;padding:4px 12px;border-radius:6px}
+.desc{white-space:pre-wrap;margin:0;max-width:62ch}
+.reserve-box{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:14px;display:grid;gap:10px}
+.reserve-box p{margin:0;white-space:pre-wrap}
+.ref{font-family:var(--f-mono);user-select:all}
+
+/* Formulaires */
+.field{display:grid;gap:6px}
+.field label,.lbl{font-weight:700;font-size:14px}
+.field input,.field textarea{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;font-size:16px}
+.field textarea{min-height:110px;resize:vertical}
+.hint{font-size:13px;color:var(--muted)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.row2{grid-template-columns:1fr}}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg label{flex:1;text-align:center;padding:10px 4px;font-weight:700;font-size:14px;cursor:pointer;background:var(--card)}
+.seg label+label{border-left:1px solid var(--line)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg input:checked+span{color:var(--paper)}
+.seg label:has(input:checked){background:var(--ink);color:var(--paper)}
+.seg label:has(input:focus-visible){outline:3px solid var(--accent);outline-offset:-3px}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.pt{position:relative;aspect-ratio:1;max-width:100%;border-radius:8px;overflow:hidden;background:var(--line)}
+.pt img{width:100%;height:100%;object-fit:cover;display:block}
+.pt .cov{position:absolute;left:4px;top:4px;background:var(--tag);color:var(--tag-ink);font-family:var(--f-mono);font-size:10px;font-weight:600;padding:1px 5px;border-radius:3px}
+.pt .ops{position:absolute;inset:auto 0 0 0;display:flex}
+.pt .ops button{flex:1;border:0;background:var(--shade);color:#fff;font-size:12px;padding:6px 2px;min-height:32px}
+.pt.loading{display:grid;place-items:center;font-size:12px;color:var(--muted)}
+.addph{display:flex;flex-wrap:wrap;gap:10px}
+.filebtn{position:relative;overflow:hidden}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:16px}
+.actions .end{display:flex;gap:10px;margin-left:auto}
+.confirm{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:14px}
+
+.fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:8;box-shadow:0 6px 18px rgba(0,0,0,.25);min-height:52px;padding:12px 20px;font-size:16px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;max-width:min(92vw,520px);font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.busy{position:fixed;inset:0;z-index:50;background:var(--shade);display:grid;place-items:center;color:#fff;font-weight:700;font-size:18px}
+footer{margin-top:40px;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+<style>
+/* Ajouts v2 : groupes, réservations, écrans d'accès */
+.who{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin-top:14px;font-size:14px;color:var(--muted)}
+.role{font-family:var(--f-mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:4px;padding:2px 7px;background:var(--ink);color:var(--paper)}
+.role.famille{background:var(--hold);color:var(--paper)}
+.role.invite{background:var(--accent);color:var(--on-accent)}
+.phase{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;margin-top:16px;font-size:15px;max-width:72ch}
+.phase b{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.gate{max-width:560px;margin:12vh auto 0;display:grid;gap:14px;text-align:left}
+.gate h1{font-size:clamp(30px,6vw,44px)}
+.gate p{margin:0}
+.gate .mono{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;justify-self:start;overflow-wrap:anywhere}
+.mine{font-size:13px;font-weight:700;color:var(--hold)}
+[hidden]{display:none!important}
+.ph-b{font-size:12px;font-weight:700;color:var(--accent);justify-self:start}
+.ph-b.draft{color:var(--muted)}
+.cardcta{padding:0 12px 12px;display:grid}
+.cardcta .btn{width:100%}
+.contact{gap:8px 12px}
+.contact .tel{font-size:16px}
+.holder{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.cta{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table.rs{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+.rs th,.rs td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+.rs th{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.rs tr:last-child td{border-bottom:0}
+.rs td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rs .acts{display:flex;gap:6px;justify-content:flex-end}
+.rs .acts .btn{min-height:34px;padding:5px 10px;font-size:13px}
+.field input[type="datetime-local"]{min-height:44px}
+.linkbtn{border:0;background:none;padding:0;margin-left:10px;color:var(--muted);text-decoration:underline;font-size:13px;cursor:pointer}
+.warn{border-left:3px solid var(--hold);padding:8px 12px;background:var(--card);border-radius:0 8px 8px 0;font-size:14px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+"use strict";
+/* Vide-maison — site GitHub Pages.
+   Les données sont dans data/lots.json et les photos dans photos/ (même dépôt).
+   Les visiteurs lisent le site public. Le mode gestion écrit dans le dépôt via l'API GitHub,
+   avec une clé (jeton) personnelle gardée uniquement dans le navigateur de l'administrateur. */
+const OWNER="GeraldCOUSI", REPO="vide-maison", BRANCH="main", DATA="data/lots.json";
+const SITE_URL="https://geraldcousi.github.io/vide-maison/";
+const API="https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/";
+const ST={dispo:"Disponible",reserve:"Réservé",parti:"Parti"};
+const PIECES=["Salon","Salle à manger","Cuisine","Chambre","Bureau","Salle de bain","Entrée","Cave","Grenier","Garage","Jardin"];
+const CATS=["Meuble","Vêtements","Bricolage","Sport","Livres","Vaisselle & cuisine","Décoration","Électroménager","Linge de maison","Jardin","Jouets","Divers"];
+const app=document.getElementById("app");
+
+let S=null;                 // {meta, lots}
+let token=lsGet("vm-token")||"";
+let admin=!!token, gestion=ssGet("vm-gestion")!=="0", vue=ssGet("vm-vue")||"invite";
+let famille=false, saving=false, loadError="";
+let F={statut:"tous",cat:"",piece:"",q:""};
+let draft=null,isNewDraft=false,confirmDel=false,layerKind=null,layerArg=null;
+const blobURL={};           // aperçu local des photos tout juste envoyées
+
+/* ---------- Utilitaires ---------- */
+function ssGet(k){try{return sessionStorage.getItem(k)}catch(e){return null}}
+function ssSet(k,v){try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function pad(n){return String(n).padStart(2,"0")}
+function z(n){return String(n).padStart(2,"0")}
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function src(path){return blobURL[path]||path}
+function fmtPrix(p){ if(p===null||p===undefined||p==="") return "Faire une offre"; p=Number(p); if(!p) return "Gratuit";
+  return new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",minimumFractionDigits:p%1?2:0,maximumFractionDigits:2}).format(p) }
+function eur(n){return new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(n)}
+function fmtJour(ms){if(!ms) return ""; const d=new Date(ms); return new Intl.DateTimeFormat("fr-FR",{weekday:"long"}).format(d)+" "+z(d.getDate())+"/"+z(d.getMonth()+1)+" "+z(d.getHours())+":"+z(d.getMinutes())}
+function fmtShort(ms){if(!ms) return ""; const d=new Date(ms); return z(d.getDate())+"/"+z(d.getMonth()+1)+" "+z(d.getHours())+":"+z(d.getMinutes())}
+function lotList(){return S.lots.slice().sort((a,b)=>(a.no||0)-(b.no||0))}
+function byId(id){return S.lots.find(l=>l.id===id)}
+function nextNo(){return S.lots.reduce((m,l)=>Math.max(m,l.no||0),0)+1}
+function delaiJ(){const d=S.meta.delaiJours; return typeof d==="number"&&d>=0?d:3}
+function invitesLe(l){return l.dispoLe?l.dispoLe+delaiJ()*864e5:null}
+function enExclu(l){return !!l.dispoLe&&Date.now()<invitesLe(l)}
+function role(){ if(admin&&gestion) return "admin"; if(admin) return vue; return famille?"famille":"invite" }
+function visible(l){ const r=role(); if(r==="admin") return true; if(!l.dispoLe) return false; return r==="famille"?Date.now()>=l.dispoLe:Date.now()>=invitesLe(l) }
+function statusOf(l){return l.statut||"dispo"}
+function contacts(){return (S.meta.contacts||[]).filter(c=>c&&(c.nom||c.tel))}
+function smsHref(t,body){return "sms:"+String(t).replace(/[^\d+]/g,"")+"?&body="+encodeURIComponent(body)}
+
+/* ---------- GitHub ---------- */
+function b64FromText(t){const b=new TextEncoder().encode(t); let s=""; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s)}
+function textFromB64(b){const bin=atob(b.replace(/\n/g,"")); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return new TextDecoder().decode(u)}
+function b64FromBlob(blob){return new Promise((res,rej)=>{const r=new FileReader(); r.onload=()=>res(String(r.result).split(",")[1]); r.onerror=()=>rej(new Error("lecture")); r.readAsDataURL(blob)})}
+async function gh(path,opt){
+  const r=await fetch(API+path,Object.assign({cache:"no-store"},opt,{headers:Object.assign({"Accept":"application/vnd.github+json","Authorization":"Bearer "+token,"X-GitHub-Api-Version":"2022-11-28"},(opt&&opt.headers)||{})}));
+  if(!r.ok){const e=new Error("GitHub "+r.status); e.status=r.status; try{e.body=await r.json()}catch(x){} throw e}
+  return r.status===204?null:r.json();
+}
+async function ghReadData(){ const j=await gh(DATA+"?ref="+BRANCH); return {data:JSON.parse(textFromB64(j.content)),sha:j.sha} }
+async function ghPut(path,b64,message,sha){ return gh(path,{method:"PUT",body:JSON.stringify(Object.assign({message,content:b64,branch:BRANCH},sha?{sha}:{}))}) }
+async function ghDelete(path,message){ try{ const j=await gh(path+"?ref="+BRANCH); await gh(path,{method:"DELETE",body:JSON.stringify({message,sha:j.sha,branch:BRANCH})}) }catch(e){} }
+function ghError(e){
+  if(e&&e.status===401) return "La clé GitHub est refusée (expirée ou mal copiée). Ouvre « Clé GitHub » et colle une nouvelle clé.";
+  if(e&&(e.status===403||e.status===404)) return "La clé GitHub n'a pas le droit d'écrire dans le dépôt vide-maison. Vérifie qu'elle donne l'accès « Contents : Read and write » à ce dépôt.";
+  if(e&&e.status===409) return "Une autre modification a été enregistrée au même moment. Réessaie.";
+  if(e&&e.status===422) return "GitHub a refusé l'enregistrement (fichier trop lourd ou conflit). Réessaie.";
+  return "Enregistrement impossible : vérifie ta connexion internet puis réessaie.";
+}
+
+/* Enregistre une modification : relit la dernière version du fichier, envoie les nouvelles photos,
+   applique la modification, puis écrit data/lots.json. */
+async function save(mutate,msg,photos){
+  if(saving) return false; saving=true; busy(true,"Enregistrement…");
+  try{
+    for(const [i,p] of (photos||[]).entries()){
+      busy(true,`Envoi des photos (${i+1}/${photos.length})…`);
+      await ghPut(p.path,await b64FromBlob(p.blob),"Photo "+p.path);
+    }
+    busy(true,"Enregistrement…");
+    for(let attempt=0;attempt<2;attempt++){
+      const {data,sha}=await ghReadData();
+      const next=clone(data); mutate(next);
+      try{ await ghPut(DATA,b64FromText(JSON.stringify(next,null,1)+"\n"),msg,sha); S=next; break }
+      catch(e){ if(e.status!==409||attempt) throw e }
+    }
+    saving=false; busy(false); closeLayer(); render(); toast(msg+" Visible par tous d'ici 1 à 2 minutes.");
+    return true;
+  }catch(e){ saving=false; busy(false); toast(ghError(e)); return false }
+}
+
+/* ---------- Chargement ---------- */
+async function load(){
+  try{
+    if(admin){ try{ S=(await ghReadData()).data; loadError=""; return }catch(e){ if(e.status===401){ toast(ghError(e)) } } }
+    const r=await fetch(DATA+"?t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw new Error(r.status);
+    S=await r.json(); loadError="";
+  }catch(e){ if(!S) loadError="Le catalogue n'a pas pu être chargé. Vérifie ta connexion puis recharge la page." }
+}
+
+/* ---------- Lien famille ---------- */
+function checkHash(){
+  const h=decodeURIComponent(location.hash.replace(/^#/,""));
+  if(S&&S.meta.codeFamille&&h===S.meta.codeFamille){ famille=true; lsSet("vm-famille",S.meta.codeFamille); try{history.replaceState(null,"",location.pathname+location.search)}catch(e){} return true }
+  return false;
+}
+
+/* ---------- Rendu ---------- */
+function render(){
+  if(!S){ app.innerHTML=`<div class="wrap"><section class="gate"><div class="eyebrow">Vide-maison</div><h1>${loadError?"Catalogue indisponible":"Chargement…"}</h1>${loadError?`<p>${esc(loadError)}</p>`:""}</section></div>`; return }
+  const r=role(), m=S.meta;
+  document.title=m.titre||"Vide-maison";
+  app.innerHTML=`<div class="wrap">
+    <header class="top">
+      <div style="min-width:0">
+        <div class="eyebrow">Vide-maison · catalogue en ligne</div>
+        <h1>${esc(m.titre||"Vide-maison")}</h1>
+        ${m.intro?`<p class="intro">${esc(m.intro)}</p>`:""}
+        ${m.infos?`<div class="infos">${esc(m.infos)}</div>`:""}
+        ${r==="famille"&&!admin?`<div class="who"><span class="role famille">Accès famille</span></div>`:""}
+      </div>
+      ${admin?`<button class="btn ${gestion?"":"primary"}" data-act="toggle">${gestion?"Aperçu visiteur":"Mode gestion"}</button>`:""}
+    </header>
+    ${admin&&!gestion?`<div class="phase">Aperçu : <span class="chips" style="display:inline-flex;vertical-align:middle;margin-left:6px">${["invite","famille"].map(v=>`<button class="chip" data-act="vue" data-v="${v}" aria-pressed="${vue===v}">${v==="invite"?"Invités":"Famille"}</button>`).join("")}</span></div>`:""}
+    <div id="phase">${phaseMsg()}</div>
+    <div id="admin">${adminBox()}</div>
+    <div class="bar">
+      <input id="q" class="search" type="search" placeholder="Rechercher un objet, une catégorie, un n° de lot…" aria-label="Rechercher" value="${esc(F.q)}">
+      <div class="chips" id="c-statut" role="group" aria-label="Filtrer par statut"></div>
+      <div class="chips" id="c-cat" role="group" aria-label="Filtrer par catégorie"></div>
+      <div class="chips" id="c-piece" role="group" aria-label="Filtrer par pièce"></div>
+    </div>
+    <main class="grid" id="grid" aria-live="polite"></main>
+    <footer>Les statuts sont mis à jour au fil des réservations. Un lot réservé peut redevenir disponible.
+      <button class="linkbtn" data-act="${admin?"token":"login"}">${admin?"Clé GitHub":"Gestion"}</button></footer>
+  </div>
+  <button class="btn primary fab" data-act="new" ${r==="admin"?"":"hidden"}>+ Nouveau lot</button>
+  <div id="layer"></div>`;
+  document.getElementById("q").addEventListener("input",e=>{F.q=e.target.value;renderGrid()});
+  renderGrid();
+}
+function phaseMsg(){
+  const r=role(), J=delaiJ(), all=lotList(), cs=contacts();
+  const qui=cs.length?cs.map(c=>esc(c.nom)).join(" ou "):"l'organisateur";
+  if(r==="famille"){
+    const ex=all.filter(l=>visible(l)&&enExclu(l)&&statusOf(l)==="dispo").length;
+    return `<div class="phase">Chaque lot vous est proposé en <b>exclusivité pendant ${J} jour${J>1?"s":""}</b> après sa mise en ligne, avant d'être ouvert aux invités.${ex?` En ce moment : <b>${ex} lot${ex>1?"s":""} en exclusivité</b>.`:""} Pour réserver, appuyez sur <b>Réserver</b> sous le lot puis envoyez un SMS à ${qui} avec le n° de lot.</div>`;
+  }
+  if(r==="invite"){
+    const soon=all.filter(l=>l.dispoLe&&!visible(l)&&statusOf(l)==="dispo").map(invitesLe).sort((a,b)=>a-b);
+    return `<div class="phase">Pour réserver, appuyez sur <b>Réserver</b> sous le lot puis envoyez un SMS à ${qui} avec le n° de lot.${soon.length?` <b>${soon.length} lot${soon.length>1?"s":""}</b> arrive${soon.length>1?"nt":""} prochainement, le premier le <b>${esc(fmtJour(soon[0]))}</b>.`:""}</div>`;
+  }
+  const br=all.filter(l=>!l.dispoLe).length, ex=all.filter(enExclu).length, ou=all.filter(l=>l.dispoLe&&!enExclu(l)).length;
+  return `<div class="phase">Exclusivité famille : <b>${J} jour${J>1?"s":""}</b> après la mise à disposition de chaque lot · Brouillons <b>${br}</b> · En exclusivité famille <b>${ex}</b> · Ouverts aux invités <b>${ou}</b></div>`;
+}
+function adminBox(){
+  if(role()!=="admin") return "";
+  const t={dispo:[0,0],reserve:[0,0],parti:[0,0]};
+  S.lots.forEach(l=>{const p=Number(l.prix)||0; t[statusOf(l)][0]++; t[statusOf(l)][1]+=p});
+  const ex=S.lots.filter(l=>l.exemple).length;
+  return `<section class="admin" aria-label="Gestion">
+    <div class="sums">
+      <span class="s-dispo">Disponibles <b>${t.dispo[0]}</b> · ${eur(t.dispo[1])}</span>
+      <span class="s-reserve">Réservés <b>${t.reserve[0]}</b> · ${eur(t.reserve[1])}</span>
+      <span class="s-parti">Partis <b>${t.parti[0]}</b> · ${eur(t.parti[1])}</span>
+    </div>
+    <div class="admin-row" style="justify-content:flex-start">
+      <button class="btn" data-act="links">Liens à envoyer</button>
+      <button class="btn ghost" data-act="settings">Infos et délai</button>
+    </div>
+    ${ex?`<div class="admin-row"><span class="note">${ex} lot${ex>1?"s":""} d'exemple, à supprimer avant d'envoyer les liens.</span><button class="btn danger" data-act="del-ex">Supprimer les exemples</button></div>`:""}
+  </section>`;
+}
+function renderGrid(){
+  const all=lotList().filter(visible), r=role();
+  const n={tous:all.length,dispo:0,reserve:0,parti:0}; all.forEach(l=>n[statusOf(l)]++);
+  document.getElementById("c-statut").innerHTML=["tous","dispo","reserve","parti"].map(k=>
+    `<button class="chip" data-act="fs" data-v="${k}" aria-pressed="${F.statut===k}">${k==="tous"?"Tous":ST[k]+"s"}<span class="n">${n[k]}</span></button>`).join("");
+  const row=(id,key,field,label)=>{const vals=[...new Set(all.map(l=>l[field]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"fr"));
+    const el=document.getElementById(id); el.hidden=vals.length<2;
+    el.innerHTML=[`<button class="chip" data-act="f-${key}" data-v="" aria-pressed="${!F[key]}">${label}</button>`]
+      .concat(vals.map(v=>`<button class="chip" data-act="f-${key}" data-v="${esc(v)}" aria-pressed="${F[key]===v}">${esc(v)}<span class="n">${all.filter(l=>l[field]===v).length}</span></button>`)).join("")};
+  row("c-cat","cat","categorie","Toutes catégories"); row("c-piece","piece","piece","Toutes les pièces");
+  const q=F.q.trim().toLowerCase();
+  const vis=all.filter(l=>(F.statut==="tous"||statusOf(l)===F.statut)&&(!F.cat||l.categorie===F.cat)&&(!F.piece||l.piece===F.piece)
+    &&(!q||[l.titre,l.description,l.piece,l.categorie,"lot "+l.no,pad(l.no)].join(" ").toLowerCase().includes(q)));
+  const g=document.getElementById("grid");
+  if(!all.length){g.innerHTML=`<div class="empty"><h2>Les lots arrivent bientôt</h2><p>${r==="admin"?"Appuie sur « + Nouveau lot » pour créer le premier.":"Revenez un peu plus tard."}</p></div>`;return}
+  if(!vis.length){g.innerHTML=`<div class="empty"><h2>Aucun lot ne correspond</h2><p>Changez de filtre ou effacez la recherche.</p></div>`;return}
+  g.innerHTML=vis.map(card).join("");
+}
+function card(l){
+  const s=statusOf(l), r=role(), cover=(l.photos||[])[0];
+  const phase=s==="parti"?"":r==="admin"?(!l.dispoLe?`<span class="ph-b draft">Brouillon · non visible</span>`:enExclu(l)?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:"")
+    :r==="famille"&&enExclu(l)&&s==="dispo"?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:"";
+  const pour=r==="admin"&&s==="reserve"&&l.reservePour?`<span class="holder">Réservé pour ${esc(l.reservePour)}</span>`:"";
+  const quick=r==="admin"?`<div class="quick" role="group" aria-label="Statut du lot ${l.no}">${["dispo","reserve","parti"].map(k=>
+    `<button data-act="qs" data-id="${esc(l.id)}" data-v="${k}" aria-pressed="${s===k}">${ST[k]}</button>`).join("")}</div>`
+    :s==="dispo"?`<div class="cardcta"><button class="btn primary" data-act="resa" data-id="${esc(l.id)}">Réserver</button></div>`:"";
+  return `<article class="lot ${s}">
+    <button class="open" data-act="open" data-id="${esc(l.id)}" aria-label="Voir le lot ${l.no} : ${esc(l.titre)}">
+      <div class="ph">
+        ${cover?`<img src="${esc(src(cover.t||cover.id))}" alt="" loading="lazy">`:`<div class="none">${pad(l.no)}</div>`}
+        <span class="tag">LOT ${pad(l.no)}</span>
+        ${(l.photos||[]).length>1?`<span class="count">${l.photos.length} photos</span>`:""}
+        ${s!=="dispo"?`<div class="stamp"><span>${ST[s]}</span></div>`:""}
+      </div>
+      <div class="body">
+        ${l.exemple?`<span class="ex">Exemple</span>`:""}
+        ${l.categorie?`<span class="cat">${esc(l.categorie)}</span>`:""}
+        <h3>${esc(l.titre)}</h3>
+        <div class="meta"><span class="price">${fmtPrix(l.prix)}</span><span class="pill s-${s}">${ST[s]}</span></div>
+        ${l.piece?`<span class="piece">${esc(l.piece)}</span>`:""}
+        ${phase}${pour}
+      </div>
+    </button>${quick}
+  </article>`;
+}
+
+/* ---------- Fiche d'un lot ---------- */
+function reserveBox(l){
+  const ref=`Lot ${pad(l.no)} — ${l.titre}`, cs=contacts();
+  return `<div class="reserve-box" id="resa-box">
+    <span class="lbl">Pour réserver ce lot</span>
+    <p>Envoyez un SMS indiquant le n° de lot :</p>
+    <div class="drow"><span class="ref" id="ref">${esc(ref)}</span><button class="btn" data-act="copy">Copier la référence</button></div>
+    ${cs.map(c=>`<div class="drow contact"><b>${esc(c.nom)}</b><span class="mono tel">${esc(c.tel)}</span>
+      <a class="btn primary" href="${esc(smsHref(c.tel,"Bonjour, je souhaite réserver le "+ref))}">Écrire un SMS</a></div>`).join("")}
+    <p class="hint">Si le bouton n'ouvre pas vos messages, copiez la référence et envoyez-la au numéro ci-dessus. Le lot sera marqué « Réservé » dès que la réservation aura été confirmée.</p>
+  </div>`;
+}
+function lotPanel(id){
+  const l=byId(id);
+  if(!l||!visible(l)) return `<div class="panel"><div class="panel-head"><h2>Ce lot n'est pas disponible</h2><button class="x" data-act="close" aria-label="Fermer">×</button></div></div>`;
+  const s=statusOf(l), r=role();
+  const box=r==="admin"?"":s==="parti"?`<div class="reserve-box"><p>Ce lot est parti.</p></div>`
+    :s==="reserve"?`<div class="reserve-box"><span class="lbl">Ce lot est déjà réservé</span><p>Il peut redevenir disponible : revenez plus tard.</p></div>`:reserveBox(l);
+  return `<div class="panel" role="dialog" aria-modal="true" aria-labelledby="dt">
+    <div class="panel-head"><span class="eyebrow">Lot ${pad(l.no)}${l.categorie?" · "+esc(l.categorie):""}${l.piece?" · "+esc(l.piece):""}</span><button class="x" data-act="close" aria-label="Fermer">×</button></div>
+    ${(l.photos||[]).length?`<div class="gallery" id="gal">${l.photos.map((p,i)=>`<img src="${esc(src(p.id))}" alt="Photo ${i+1} du lot ${l.no}">`).join("")}</div>
+      ${l.photos.length>1?`<div class="gcount mono" id="gc">1 / ${l.photos.length}</div>`:""}`:""}
+    <h2 class="dtitle" id="dt">${esc(l.titre)}</h2>
+    <div class="drow"><span class="bigprice">${fmtPrix(l.prix)}</span><span class="pill s-${s}">${ST[s]}</span>${l.exemple?`<span class="ex">Exemple</span>`:""}</div>
+    ${r==="famille"&&enExclu(l)&&s==="dispo"?`<span class="ph-b">Exclusivité famille jusqu'au ${esc(fmtJour(invitesLe(l)))}</span>`:""}
+    ${l.description?`<p class="desc">${esc(l.description)}</p>`:""}
+    ${box}
+    ${S.meta.infos&&r!=="admin"?`<p class="note" style="white-space:pre-wrap;margin:0">${esc(S.meta.infos)}</p>`:""}
+    ${r==="admin"?`${s==="reserve"&&l.reservePour?`<div class="warn">Réservé pour <b>${esc(l.reservePour)}</b></div>`:""}
+      <div class="actions">${l.dispoLe?`<span class="note">Mis à disposition le ${esc(fmtShort(l.dispoLe))} · invités le ${esc(fmtShort(invitesLe(l)))}</span>`:`<button class="btn" data-act="publish-lot" data-id="${esc(l.id)}">Mettre à disposition maintenant</button>`}<button class="btn primary" data-act="edit" data-id="${esc(l.id)}">Modifier ce lot</button></div>`:""}
+  </div>`;
+}
+
+/* ---------- Édition (admin) ---------- */
+function editLot(id){
+  const l=id?byId(id):null; isNewDraft=!l;
+  draft=l?clone(l):{id:"l"+Date.now().toString(36),no:nextNo(),titre:"",categorie:"",piece:"",description:"",prix:"",statut:"dispo",photos:[],dispoLe:null,reservePour:""};
+  draft._mise=isNewDraft?"maintenant":(l.dispoLe?"garder":"brouillon");
+  draft._removed=[]; draft._new=[]; confirmDel=false; showLayer("edit");
+}
+function editorPanel(){
+  const d=draft;
+  const pieces=[...new Set(PIECES.concat(S.lots.map(l=>l.piece).filter(Boolean)))];
+  const cats=[...new Set(CATS.concat(S.lots.map(l=>l.categorie).filter(Boolean)))];
+  return `<form class="panel" id="ed" role="dialog" aria-modal="true" aria-labelledby="edt" novalidate>
+    <div class="panel-head"><h2 id="edt">${isNewDraft?"Nouveau lot":"Modifier"} · <span class="mono">LOT ${pad(d.no)}</span></h2><button type="button" class="x" data-act="cancel" aria-label="Annuler">×</button></div>
+    <div class="field"><span class="lbl">Photos</span>
+      <div class="photos" id="ph"></div>
+      <div class="addph">
+        <span class="btn primary filebtn">Prendre une photo<input id="cam" type="file" accept="image/*" capture="environment"></span>
+        <span class="btn filebtn">Choisir dans la photothèque<input id="lib" type="file" accept="image/*" multiple></span>
+      </div>
+      <span class="hint">La première photo sert de couverture. Les photos sont réduites puis envoyées dans le dépôt au moment d'enregistrer.</span>
+    </div>
+    <div class="field"><label for="f-titre">Titre</label><input id="f-titre" required value="${esc(d.titre)}" placeholder="Ex. Commode trois tiroirs" autocomplete="off"></div>
+    <div class="field"><label for="f-cat">Catégorie</label>
+      <div class="chips wrapchips" id="cat-pick" role="group" aria-label="Choisir une catégorie">${cats.map(c=>`<button type="button" class="chip" data-act="pick-cat" data-v="${esc(c)}" aria-pressed="${d.categorie===c}">${esc(c)}</button>`).join("")}</div>
+      <input id="f-cat" value="${esc(d.categorie||"")}" placeholder="Ou saisis une autre catégorie" autocomplete="off">
+    </div>
+    <div class="row2">
+      <div class="field"><label for="f-prix">Prix (€)</label><input id="f-prix" inputmode="decimal" value="${esc(d.prix)}" placeholder="Vide = faire une offre"><span class="hint">0 = gratuit</span></div>
+      <div class="field"><label for="f-piece">Pièce</label><input id="f-piece" list="dl-pieces" value="${esc(d.piece)}" placeholder="Ex. Salon" autocomplete="off"><datalist id="dl-pieces">${pieces.map(p=>`<option value="${esc(p)}">`).join("")}</datalist></div>
+    </div>
+    <div class="field"><span class="lbl" id="st-l">Statut</span>
+      <div class="seg" role="radiogroup" aria-labelledby="st-l">${["dispo","reserve","parti"].map(k=>
+        `<label><input type="radio" name="st" id="st-${k}" value="${k}" ${d.statut===k?"checked":""}><span>${ST[k]}</span></label>`).join("")}</div>
+    </div>
+    <div class="field"><label for="f-pour">Réservé pour</label><input id="f-pour" value="${esc(d.reservePour||"")}" placeholder="Ex. Marie (cousine)" autocomplete="off"><span class="hint">Affiché seulement en mode gestion. N'indique qu'un prénom : le fichier de données est public.</span></div>
+    <div class="field"><span class="lbl" id="mise-l">Mise à disposition</span>
+      <div class="seg" role="radiogroup" aria-labelledby="mise-l">
+        <label><input type="radio" name="mise" value="brouillon" ${d._mise==="brouillon"?"checked":""}><span>Brouillon</span></label>
+        <label><input type="radio" name="mise" value="${d.dispoLe?"garder":"maintenant"}" ${d._mise!=="brouillon"?"checked":""}><span>${d.dispoLe?"À disposition":"Disponible maintenant"}</span></label>
+      </div>
+      <span class="hint">${d.dispoLe?`Mis à disposition le ${esc(fmtShort(d.dispoLe))} : famille seule jusqu'au ${esc(fmtJour(invitesLe(d)))}, puis ouvert aux invités.`:`Brouillon : visible des seuls administrateurs. « Disponible maintenant » ouvre le lot à la famille tout de suite, puis aux invités ${delaiJ()} jour${delaiJ()>1?"s":""} plus tard.`}</span>
+    </div>
+    <div class="field"><label for="f-desc">Description du contenu</label><textarea id="f-desc" placeholder="Ce que contient le lot, dimensions, état…">${esc(d.description)}</textarea></div>
+    <div class="actions">
+      ${isNewDraft?"":`<div>${confirmDel?`<div class="confirm"><span>Supprimer définitivement ce lot ?</span><button type="button" class="btn danger" data-act="del-yes">Supprimer</button><button type="button" class="btn ghost" data-act="del-no">Non</button></div>`:`<button type="button" class="btn danger" data-act="del">Supprimer</button>`}</div>`}
+      <div class="end"><button type="button" class="btn ghost" data-act="cancel">Annuler</button><button type="submit" class="btn primary" id="save">Enregistrer</button></div>
+    </div>
+  </form>`;
+}
+function bindEditor(){
+  document.getElementById("ed").addEventListener("submit",e=>{e.preventDefault();saveLot()});
+  document.getElementById("cam").addEventListener("change",e=>{addFiles(e.target.files);e.target.value=""});
+  document.getElementById("lib").addEventListener("change",e=>{addFiles(e.target.files);e.target.value=""});
+  renderPhotos();
+}
+function readForm(){
+  if(!draft||!document.getElementById("ed")) return;
+  const v=id=>document.getElementById(id).value.trim();
+  draft.titre=v("f-titre"); draft.categorie=v("f-cat"); draft.piece=v("f-piece"); draft.description=v("f-desc"); draft.reservePour=v("f-pour");
+  const p=v("f-prix").replace(/\s|€/g,"").replace(",","."); draft.prix=p===""?"":(isNaN(Number(p))?draft.prix:Number(p));
+  const st=document.querySelector('input[name="st"]:checked'); if(st) draft.statut=st.value;
+  const mi=document.querySelector('input[name="mise"]:checked'); if(mi) draft._mise=mi.value;
+}
+let preparing=0;
+function renderPhotos(){
+  const el=document.getElementById("ph"); if(!el||!draft) return;
+  el.innerHTML=draft.photos.map((p,i)=>`<div class="pt"><img src="${esc(src(p.t||p.id))}" alt="Photo ${i+1}">${i===0?`<span class="cov">COUVERTURE</span>`:""}
+    <div class="ops">${i>0?`<button type="button" data-act="ph-cov" data-i="${i}">Couverture</button>`:""}<button type="button" data-act="ph-del" data-i="${i}">Retirer</button></div></div>`).join("")
+    +Array.from({length:preparing},()=>`<div class="pt loading">Préparation…</div>`).join("");
+  const sv=document.getElementById("save"); if(sv) sv.disabled=preparing>0;
+}
+function resize(file,max,q){
+  return new Promise((res,rej)=>{const url=URL.createObjectURL(file); const im=new Image();
+    im.onload=()=>{const r=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight)); const c=document.createElement("canvas");
+      c.width=Math.round(im.naturalWidth*r); c.height=Math.round(im.naturalHeight*r); c.getContext("2d").drawImage(im,0,0,c.width,c.height); URL.revokeObjectURL(url);
+      c.toBlob(b=>b?res(b):rej(new Error("conversion")),"image/jpeg",q)};
+    im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error("lecture"))}; im.src=url});
+}
+async function addFiles(list){
+  const files=Array.from(list||[]); if(!files.length) return;
+  readForm(); preparing+=files.length; renderPhotos();
+  for(const f of files){
+    try{ const big=await resize(f,1600,.82), th=await resize(f,640,.75);
+      const base="photos/"+draft.id+"-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+      const p={id:base+".jpg",t:base+"-t.jpg"}; blobURL[p.id]=URL.createObjectURL(big); blobURL[p.t]=URL.createObjectURL(th);
+      draft._new.push({path:p.id,blob:big},{path:p.t,blob:th}); draft.photos.push(p) }
+    catch(e){ toast("Cette photo n'a pas pu être lue. Essaie avec une autre.") }
+    preparing--; renderPhotos();
+  }
+}
+function cancelEdit(){ closeLayer() }
+async function saveLot(){
+  readForm();
+  if(!draft.titre){toast("Donne un titre au lot.");document.getElementById("f-titre").focus();return}
+  const d=clone(draft); const kept=new Set(d.photos.flatMap(p=>[p.id,p.t]));
+  const uploads=draft._new.filter(n=>kept.has(n.path)); const removed=draft._removed.slice();
+  delete d.exemple; delete d._new; delete d._removed;
+  if(d._mise==="brouillon") d.dispoLe=null; else if(!d.dispoLe) d.dispoLe=Date.now();
+  delete d._mise; if(d.statut!=="reserve") d.reservePour="";
+  const ok=await save(data=>{const i=data.lots.findIndex(l=>l.id===d.id); if(i>=0) data.lots[i]=d; else data.lots.push(d)},`Lot ${pad(d.no)} enregistré.`,uploads);
+  if(ok) removed.forEach(p=>ghDelete(p,"Suppression "+p));
+}
+
+/* ---------- Réglages (admin) ---------- */
+function settingsPanel(){
+  const m=S.meta, cs=(m.contacts||[]).concat([{},{}]).slice(0,Math.max(2,(m.contacts||[]).length));
+  return `<form class="panel" id="set" role="dialog" aria-modal="true" aria-labelledby="stt" novalidate>
+    <div class="panel-head"><h2 id="stt">Infos et délai</h2><button type="button" class="x" data-act="close" aria-label="Fermer">×</button></div>
+    <div class="field"><label for="m-delai">Exclusivité famille (jours)</label><input id="m-delai" type="number" inputmode="numeric" min="0" max="60" step="1" value="${delaiJ()}" style="max-width:140px"><span class="hint">Délai entre la mise à disposition d'un lot et son ouverture aux invités.</span></div>
+    <div class="field"><label for="m-titre">Titre de la page</label><input id="m-titre" value="${esc(m.titre)}"></div>
+    <div class="field"><label for="m-intro">Texte d'accueil</label><textarea id="m-intro">${esc(m.intro)}</textarea></div>
+    <div class="field"><label for="m-infos">Infos pratiques (retrait, réservation)</label><textarea id="m-infos">${esc(m.infos)}</textarea></div>
+    <div class="field"><span class="lbl">Contacts pour réserver</span>
+      ${cs.map((c,i)=>`<div class="row2"><input id="c-nom-${i}" value="${esc(c.nom||"")}" placeholder="Prénom" aria-label="Prénom du contact ${i+1}"><input id="c-tel-${i}" value="${esc(c.tel||"")}" placeholder="06.xx.xx.xx.xx" inputmode="tel" aria-label="Téléphone du contact ${i+1}"></div>`).join("")}
+      <span class="hint">Affichés dans la fiche de chaque lot, avec un bouton pour écrire un SMS.</span></div>
+    <div class="actions"><div class="end"><button type="button" class="btn ghost" data-act="close">Annuler</button><button class="btn primary" type="submit">Enregistrer</button></div></div>
+  </form>`;
+}
+function bindSettings(){
+  document.getElementById("set").addEventListener("submit",e=>{
+    e.preventDefault(); const v=id=>document.getElementById(id).value.trim();
+    const J=Math.round(Number(v("m-delai"))); if(!(J>=0&&J<=60)){toast("Indique un délai entre 0 et 60 jours.");return}
+    const cs=[]; for(let i=0;document.getElementById("c-nom-"+i);i++){const nom=v("c-nom-"+i),tel=v("c-tel-"+i); if(nom||tel) cs.push({nom,tel})}
+    const vals={titre:v("m-titre")||"Vide-maison",intro:v("m-intro"),infos:v("m-infos"),delaiJours:J,contacts:cs};
+    save(data=>Object.assign(data.meta,vals),"Infos enregistrées.");
+  });
+}
+
+/* ---------- Liens et clé (admin) ---------- */
+function linksPanel(){
+  const fam=SITE_URL+"#"+S.meta.codeFamille;
+  return `<div class="panel" role="dialog" aria-modal="true" aria-labelledby="lkt">
+    <div class="panel-head"><h2 id="lkt">Liens à envoyer</h2><button class="x" data-act="close" aria-label="Fermer">×</button></div>
+    <div class="field"><span class="lbl">Lien famille</span><span class="ref mono" id="lk-fam" style="overflow-wrap:anywhere">${esc(fam)}</span>
+      <div class="cta"><button class="btn primary" data-act="copy-el" data-el="lk-fam">Copier le lien famille</button><button class="btn danger" data-act="new-code">Changer le code</button></div>
+      <span class="hint">À envoyer uniquement à la famille. En l'ouvrant une fois, leur téléphone ou ordinateur garde l'accès famille. Changer le code désactive l'ancien lien.</span></div>
+    <div class="field"><span class="lbl">Lien invités</span><span class="ref mono" id="lk-inv" style="overflow-wrap:anywhere">${esc(SITE_URL)}</span>
+      <div class="cta"><button class="btn" data-act="copy-el" data-el="lk-inv">Copier le lien invités</button></div>
+      <span class="hint">Les invités voient chaque lot une fois l'exclusivité famille terminée.</span></div>
+  </div>`;
+}
+function tokenPanel(){
+  return `<form class="panel" id="tk" role="dialog" aria-modal="true" aria-labelledby="tkt" novalidate>
+    <div class="panel-head"><h2 id="tkt">${admin?"Clé GitHub":"Accès gestion"}</h2><button type="button" class="x" data-act="close" aria-label="Fermer">×</button></div>
+    <p class="note" style="margin:0">Le mode gestion enregistre les lots et les photos dans le dépôt GitHub « ${REPO} ». Colle ici ta clé GitHub (jeton à accès précis, limité à ce dépôt). Elle reste uniquement dans ce navigateur.</p>
+    <div class="field"><label for="tk-v">Clé GitHub</label><input id="tk-v" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…" value=""></div>
+    <div class="actions">${admin?`<button type="button" class="btn danger" data-act="logout">Retirer la clé de cet appareil</button>`:""}<div class="end"><button type="button" class="btn ghost" data-act="close">Annuler</button><button class="btn primary" type="submit" id="tk-ok">Vérifier et enregistrer</button></div></div>
+  </form>`;
+}
+function bindToken(){
+  document.getElementById("tk").addEventListener("submit",async e=>{
+    e.preventDefault(); const v=document.getElementById("tk-v").value.trim(); if(!v){toast("Colle la clé GitHub.");return}
+    const b=document.getElementById("tk-ok"); b.disabled=true; b.textContent="Vérification…";
+    const old=token; token=v;
+    try{
+      const r=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO,{headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+v}});
+      const j=r.ok?await r.json():null;
+      if(!r.ok) throw Object.assign(new Error(),{status:r.status});
+      if(!(j.permissions&&j.permissions.push)) throw Object.assign(new Error(),{status:403});
+      lsSet("vm-token",v); admin=true; gestion=true; ssSet("vm-gestion","1"); closeLayer(); await load(); render(); toast("Clé enregistrée : mode gestion activé sur cet appareil.");
+    }catch(err){ token=old; b.disabled=false; b.textContent="Vérifier et enregistrer"; toast(ghError(err)) }
+  });
+}
+
+/* ---------- Volets et messages ---------- */
+function showLayer(kind,arg){
+  layerKind=kind; layerArg=arg; const L=document.getElementById("layer");
+  const html=kind==="lot"?lotPanel(arg):kind==="edit"?editorPanel():kind==="settings"?settingsPanel():kind==="token"?tokenPanel():linksPanel();
+  L.innerHTML=`<div class="sheet" data-act="backdrop">${html}</div>`; document.body.style.overflow="hidden";
+  if(kind==="lot"){const l=byId(arg),gal=document.getElementById("gal"),gc=document.getElementById("gc"); if(l&&gal&&gc) gal.addEventListener("scroll",()=>{gc.textContent=(Math.round(gal.scrollLeft/gal.clientWidth)+1)+" / "+l.photos.length},{passive:true})}
+  if(kind==="edit") bindEditor(); if(kind==="settings") bindSettings(); if(kind==="token") bindToken();
+  const x=L.querySelector(".x"); if(x) x.focus({preventScroll:true});
+}
+function closeLayer(){
+  const L=document.getElementById("layer"); if(L) L.innerHTML=""; layerKind=null; layerArg=null; draft=null; document.body.style.overflow="";
+  if(/^#lot-/.test(location.hash)) try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+}
+let busyEl=null;
+function busy(on,msg){ if(!busyEl){busyEl=document.createElement("div");busyEl.className="busy";busyEl.setAttribute("role","status");document.body.appendChild(busyEl)} busyEl.textContent=msg||""; busyEl.hidden=!on }
+let tt;
+function toast(msg){let t=document.getElementById("toast"); if(!t){t=document.createElement("div");t.id="toast";t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}
+  t.textContent=msg; t.hidden=false; clearTimeout(tt); tt=setTimeout(()=>{t.hidden=true},5500)}
+function copyText(el,label){ const t=el.textContent;
+  const sel=()=>{const rg=document.createRange();rg.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(rg);toast("Texte sélectionné : copie-le manuellement.")};
+  try{navigator.clipboard.writeText(t).then(()=>toast(label+" copié."),sel)}catch(err){sel()} }
+function randCode(){const a="abcdefghjkmnpqrstuvwxyz23456789";let s="famille-";const r=new Uint32Array(5);crypto.getRandomValues(r);for(let i=0;i<5;i++)s+=a[r[i]%a.length];return s}
+
+/* ---------- Événements ---------- */
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const a=b.dataset.act, id=b.dataset.id;
+  if(a==="backdrop"){ if(e.target===b&&!saving) closeLayer(); return }
+  switch(a){
+    case "open": { const l=byId(id); try{history.replaceState(null,"","#lot-"+l.no)}catch(err){} showLayer("lot",id); break }
+    case "resa": { const l=byId(id); try{history.replaceState(null,"","#lot-"+l.no)}catch(err){} showLayer("lot",id); const bx=document.getElementById("resa-box"); if(bx) bx.scrollIntoView({block:"center"}); break }
+    case "close": closeLayer(); break;
+    case "fs": F.statut=b.dataset.v; renderGrid(); break;
+    case "f-cat": F.cat=b.dataset.v; renderGrid(); break;
+    case "f-piece": F.piece=b.dataset.v; renderGrid(); break;
+    case "toggle": gestion=!gestion; ssSet("vm-gestion",gestion?"1":"0"); render(); break;
+    case "vue": vue=b.dataset.v; ssSet("vm-vue",vue); render(); break;
+    case "login": case "token": showLayer("token"); break;
+    case "logout": lsSet("vm-token",null); token=""; admin=false; closeLayer(); render(); toast("Clé retirée de cet appareil."); break;
+    case "new": editLot(null); break;
+    case "edit": editLot(id); break;
+    case "cancel": cancelEdit(); break;
+    case "settings": showLayer("settings"); break;
+    case "links": showLayer("links"); break;
+    case "copy-el": copyText(document.getElementById(b.dataset.el),"Lien"); break;
+    case "copy": copyText(document.getElementById("ref"),"Référence"); break;
+    case "new-code": { const c=randCode(); save(data=>{data.meta.codeFamille=c},"Nouveau code famille : renvoie le nouveau lien à la famille."); break }
+    case "publish-lot": { const t=Date.now(); save(data=>{const x=data.lots.find(y=>y.id===id); if(x) x.dispoLe=t},"Lot mis à disposition de la famille."); break }
+    case "qs": { const l=byId(id); if(!l||statusOf(l)===b.dataset.v) return; const v=b.dataset.v;
+      save(data=>{const x=data.lots.find(y=>y.id===id); if(x){ x.statut=v; if(v!=="reserve") x.reservePour="" }},`Lot ${pad(l.no)} : ${ST[v].toLowerCase()}.`); break }
+    case "pick-cat": document.getElementById("f-cat").value=b.dataset.v; document.querySelectorAll("#cat-pick .chip").forEach(c=>c.setAttribute("aria-pressed",String(c===b))); break;
+    case "ph-cov": { readForm(); const i=+b.dataset.i; draft.photos.unshift(draft.photos.splice(i,1)[0]); renderPhotos(); break }
+    case "ph-del": { readForm(); const p=draft.photos.splice(+b.dataset.i,1)[0]; if(p&&!blobURL[p.id]) draft._removed.push(p.id,p.t); renderPhotos(); break }
+    case "del": readForm(); confirmDel=true; showLayer("edit"); break;
+    case "del-no": readForm(); confirmDel=false; showLayer("edit"); break;
+    case "del-yes": { const d=draft, files=(byId(d.id)||{photos:[]}).photos.flatMap(p=>[p.id,p.t]);
+      save(data=>{data.lots=data.lots.filter(l=>l.id!==d.id)},`Lot ${pad(d.no)} supprimé.`).then(ok=>{ if(ok) files.forEach(p=>ghDelete(p,"Suppression "+p)) }); break }
+    case "del-ex": save(data=>{data.lots=data.lots.filter(l=>!l.exemple)},"Lots d'exemple supprimés."); break;
+  }
+});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&layerKind&&!saving) closeLayer() });
+function fromHash(){ if(checkHash()){ render(); return } const m=/^#lot-(\d+)$/.exec(location.hash); if(!m||!S) return; const l=lotList().find(x=>x.no===Number(m[1])); if(l&&visible(l)&&layerKind!=="lot") showLayer("lot",l.id) }
+window.addEventListener("hashchange",fromHash);
+
+/* Les visiteurs voient les changements sans recharger : nouvelle lecture toutes les 2 minutes. */
+setInterval(async()=>{ if(layerKind||saving) return; const before=JSON.stringify(S); await load(); if(JSON.stringify(S)!==before) render(); else if(S) renderGrid() },120000);
+
+(async()=>{
+  render(); await load();
+  famille=!!(S&&S.meta.codeFamille)&&lsGet("vm-famille")===S.meta.codeFamille;
+  checkHash(); render(); fromHash();
+})();
+})();
+</script>
+
+</body>
+</html>

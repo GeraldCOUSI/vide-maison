@@ -1,0 +1,58 @@
+{
+ "meta": {
+  "titre": "Vide-maison",
+  "intro": "Tout doit partir ! Parcourez les lots et réservez ceux qui vous intéressent.",
+  "infos": "À retirer au 65 route des Villages à Monistrol.\nRéservez vos lots auprès de Gérald avec un SMS au 06.75.22.96.98 indiquant le n° de lot",
+  "delaiJours": 5,
+  "contacts": [
+   {
+    "nom": "Gérald",
+    "tel": "06.75.22.96.98"
+   }
+  ],
+  "codeFamille": "famille-jmjrb"
+ },
+ "lots": [
+  {
+   "id": "ex1",
+   "no": 1,
+   "titre": "Buffet en chêne deux portes",
+   "categorie": "Meuble",
+   "piece": "Salon",
+   "description": "Buffet bas, deux portes et deux tiroirs.\nL 140 × P 45 × H 85 cm. Quelques rayures sur le plateau.",
+   "prix": 125,
+   "statut": "dispo",
+   "photos": [],
+   "dispoLe": 1793774684949,
+   "reservePour": ""
+  },
+  {
+   "id": "ex2",
+   "no": 2,
+   "titre": "Lot de vaisselle (service 12 personnes)",
+   "categorie": "Vaisselle & cuisine",
+   "piece": "Cuisine",
+   "description": "Assiettes plates, creuses et à dessert, porcelaine blanche.",
+   "prix": 35,
+   "statut": "reserve",
+   "photos": [],
+   "dispoLe": null,
+   "reservePour": "",
+   "exemple": true
+  },
+  {
+   "id": "ex3",
+   "no": 3,
+   "titre": "Tondeuse électrique",
+   "categorie": "Jardin",
+   "piece": "Garage",
+   "description": "Fonctionne, bac de ramassage inclus.",
+   "prix": 40,
+   "statut": "parti",
+   "photos": [],
+   "dispoLe": null,
+   "reservePour": "",
+   "exemple": true
+  }
+ ]
+}
