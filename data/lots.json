@@ -1168,6 +1168,25 @@
    "dispoLe": 1794747295271,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhu7dvv",
+   "no": 58,
+   "titre": "Classeur bois",
+   "categorie": "Meuble",
+   "piece": "Clayettes",
+   "description": "",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhu7dvv-mwhu7q5cy9jm.jpg",
+     "t": "photos/lmwhu7dvv-mwhu7q5cy9jm-t.jpg"
+    }
+   ],
+   "dispoLe": 1794747326595,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
