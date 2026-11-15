@@ -1206,6 +1206,25 @@
    "dispoLe": 1794747360358,
    "reservePour": "",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhu8w7g",
+   "no": 60,
+   "titre": "Machine à bière",
+   "categorie": "Électroménager",
+   "piece": "Clayettes",
+   "description": "",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhu8w7g-mwhu912otmli.jpg",
+     "t": "photos/lmwhu8w7g-mwhu912otmli-t.jpg"
+    }
+   ],
+   "dispoLe": 1794747396061,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
