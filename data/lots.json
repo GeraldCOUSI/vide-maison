@@ -34,6 +34,12 @@
     "nom": "Voisins",
     "delai": 8,
     "code": "voisins-zsa44"
+   },
+   {
+    "id": "acheteurs",
+    "nom": "Acheteurs maison",
+    "delai": 0,
+    "code": "acheteurs-ta6qs"
    }
   ],
   "categories": [

@@ -271,23 +271,30 @@ function nomDe(r){ if(r==="public") return "Public"; const p=profilById(r); retu
 /* Profil « Foyer » : seul profil qui voit un lot « Réservé au foyer ». */
 function foyerId(){ const p=profilById("foyer"); return p?p.id:null }
 function foyerNom(){ const p=profilById(foyerId()); return p?p.nom:"le foyer" }
-function auFoyer(l){ return !!(l.reserveFoyer||l.familleSeule) }
+function auFoyer(l){ return !!(l.reserveFoyer||l.familleSeule)&&!l.reserveAcheteurs }
+/* Profil « Acheteurs maison » : ne voit que les lots qui lui sont réservés (bouton dans la fiche du lot). */
+function achId(){ const p=profilById("acheteurs"); return p?p.id:null }
+function achNom(){ const p=profilById(achId()); return p?p.nom:"Acheteurs maison" }
+function auxAch(l){ return !!l.reserveAcheteurs }
 /* Moment où le profil r voit le lot l : calendrier normal, sauf « réservé à la famille » (famille seule)
    « Réservé au foyer » : seul le foyer voit le lot. En le rendant disponible, dispoLe repart de ce moment
    et le calendrier normal s'applique (famille, puis amis, puis voisins, puis public). */
 function ouvertureDe(l,r){ if(!l.dispoLe) return null; const base=l.dispoLe+delaiDe(r)*864e5;
+  if(auxAch(l)) return (r===achId()||r===foyerId())?l.dispoLe:Infinity;
+  if(r===achId()) return Infinity;
   if(auFoyer(l)) return r===foyerId()?l.dispoLe:Infinity;
   return l.ouvertLe?Math.min(base,Math.max(l.ouvertLe,l.dispoLe)):base }
-function audiences(){ return profils().map(p=>({id:p.id,nom:p.nom,delai:delaiDe(p.id)})).concat([{id:"public",nom:"Public",delai:delaiJ()}]).sort((a,b)=>a.delai-b.delai) }
+function audiences(){ return profils().filter(p=>p.id!==achId()).map(p=>({id:p.id,nom:p.nom,delai:delaiDe(p.id)})).concat([{id:"public",nom:"Public",delai:delaiJ()}]).sort((a,b)=>a.delai-b.delai) }
 function invitesLe(l){return ouvertureDe(l,"public")}
 function enExclu(l){return !!l.dispoLe&&Date.now()<invitesLe(l)}
 function role(){ if(admin&&gestion) return "admin"; if(admin) return (vue==="public"||profilById(vue))?vue:"public"; return monProfil()||"public" }
 function visible(l){ const r=role(); if(r==="admin") return true; if(!l.dispoLe) return false; return Date.now()>=ouvertureDe(l,r) }
-function calendrierLot(l){ if(auFoyer(l)) return "Réservé à "+esc(foyerNom())+" uniquement"; if(l.ouvertLe) return "Ouvert à tous depuis le "+esc(fmtShort(l.ouvertLe)); return calendrier(l.dispoLe) }
+function calendrierLot(l){ if(auxAch(l)) return "Réservé aux "+esc(achNom().toLowerCase())+" uniquement"; if(auFoyer(l)) return "Réservé à "+esc(foyerNom())+" uniquement"; if(l.ouvertLe) return "Ouvert à tous depuis le "+esc(fmtShort(l.ouvertLe)); return calendrier(l.dispoLe) }
 function calendrier(t0){ return audiences().map(a=>`${esc(a.nom)} ${a.delai?"J+"+a.delai+(t0?" ("+esc(fmtShort(t0+a.delai*864e5))+")":""):"dès la mise en ligne"}`).join(" · ") }
 /* Mention affichée sur un lot pour le visiteur r (ou l'administrateur). */
 function badgeTxt(l,r){
   if(!l.dispoLe) return "";
+  if(auxAch(l)) return r==="admin"?`Réservé aux ${achNom().toLowerCase()} uniquement`:r===achId()?"Réservé pour vous":"";
   if(auFoyer(l)) return r==="admin"?`Réservé à ${foyerNom()} uniquement`:r===foyerId()?`Réservé à ${foyerNom()}`:"";
   const now=Date.now(), auds=audiences().map(a=>Object.assign({},a,{t:ouvertureDe(l,a.id)})).sort((a,b)=>a.t-b.t);
   const open=auds.filter(a=>now>=a.t), next=auds.find(a=>now<a.t);
@@ -432,6 +439,9 @@ function render(){
 function phaseMsg(){
   const r=role(), J=delaiJ(), all=lotList(), cs=contacts();
   const qui=cs.length?cs.map(c=>esc(c.nom)).join(" ou "):"l'organisateur";
+  if(r===achId()){
+    return `<div class="phase">Voici les lots que nous vous proposons en priorité, en tant qu'acheteurs de la maison. Pour réserver, appuyez sur <b>Réserver</b> sous le lot puis envoyez un SMS à ${qui} avec le n° de lot.</div>`;
+  }
   if(r!=="public"&&r!=="admin"){
     const d=delaiDe(r), avance=J-d;
     const ex=all.filter(l=>visible(l)&&enExclu(l)&&typeOf(l)==="dispo").length;
@@ -535,7 +545,7 @@ function lotPanel(id){
     ${box}
     ${S.meta.infos&&r!=="admin"?`<p class="note" style="white-space:pre-wrap;margin:0">${esc(S.meta.infos)}</p>`:""}
     ${r==="admin"?`${ty==="reserve"&&l.reservePour?`<div class="warn">Réservé pour <b>${esc(l.reservePour)}</b></div>`:""}
-      <div class="actions">${l.dispoLe?`<span class="note">Mis à disposition le ${esc(fmtShort(l.dispoLe))} · ${calendrierLot(l)}</span>${auFoyer(l)?`<button class="btn" data-act="open-all" data-id="${esc(l.id)}">Rendre disponible maintenant</button>`:""}`:`<button class="btn" data-act="publish-lot" data-id="${esc(l.id)}">Mettre à disposition maintenant</button>`}<button class="btn primary" data-act="edit" data-id="${esc(l.id)}">Modifier ce lot</button></div>`:""}
+      <div class="actions">${l.dispoLe?`<span class="note">Mis à disposition le ${esc(fmtShort(l.dispoLe))} · ${calendrierLot(l)}</span>${auFoyer(l)||auxAch(l)?`<button class="btn" data-act="open-all" data-id="${esc(l.id)}">Rendre disponible maintenant</button>`:""}`:`<button class="btn" data-act="publish-lot" data-id="${esc(l.id)}">Mettre à disposition maintenant</button>`}<button class="btn primary" data-act="edit" data-id="${esc(l.id)}">Modifier ce lot</button></div>`:""}
   </div>`;
 }
 
@@ -580,6 +590,10 @@ function editorPanel(){
       <label class="switch" for="f-fam"><input type="checkbox" role="switch" id="f-fam" ${auFoyer(d)?"checked":""}><span class="track" aria-hidden="true"></span><span>Réservé à ${esc(foyerNom())}</span></label>
       <span class="hint">Activé : le lot n'est visible que par ${esc(foyerNom())}. Désactivé : le lot est rendu disponible à ce moment-là et suit le calendrier : ${calendrier()}.</span>
     </div>`:""}
+    ${achId()?`<div class="field">
+      <label class="switch" for="f-ach"><input type="checkbox" role="switch" id="f-ach" ${auxAch(d)?"checked":""}><span class="track" aria-hidden="true"></span><span>Réservé aux ${esc(achNom().toLowerCase())}</span></label>
+      <span class="hint">Activé : le lot n'est visible que par les ${esc(achNom().toLowerCase())} (et ${esc(foyerNom())}). Il prend le pas sur « Réservé à ${esc(foyerNom())} ». Désactivé plus tard : le lot est rendu disponible et suit le calendrier normal.</span>
+    </div>`:""}
     <div class="field"><span class="lbl" id="mise-l">Mise à disposition</span>
       <div class="seg" role="radiogroup" aria-labelledby="mise-l">
         <label><input type="radio" name="mise" value="brouillon" ${d._mise==="brouillon"?"checked":""}><span>Brouillon</span></label>
@@ -621,6 +635,7 @@ function readForm(){
   const st=document.querySelector('input[name="st"]:checked'); if(st) draft.statut=st.value;
   const mi=document.querySelector('input[name="mise"]:checked'); if(mi) draft._mise=mi.value;
   const fm=document.getElementById("f-fam"); if(fm) draft._fam=fm.checked;
+  const fa=document.getElementById("f-ach"); if(fa) draft._ach=fa.checked;
 }
 let preparing=0;
 function renderPhotos(){
@@ -664,6 +679,9 @@ async function saveLot(){
   if(typeof d._fam==="boolean"){ if(d._fam){ d.reserveFoyer=true; delete d.ouvertLe }
     else if(auFoyer(d)){ d.reserveFoyer=false; if(d.dispoLe) d.dispoLe=Date.now() } }
   delete d._fam; delete d.familleSeule; if(!d.reserveFoyer) delete d.reserveFoyer;
+  if(typeof d._ach==="boolean"){ if(d._ach){ d.reserveAcheteurs=true; delete d.ouvertLe }
+    else if(d.reserveAcheteurs){ d.reserveAcheteurs=false; if(d.dispoLe&&!d.reserveFoyer) d.dispoLe=Date.now() } }
+  delete d._ach; if(!d.reserveAcheteurs) delete d.reserveAcheteurs;
   const ok=await save(data=>{const i=data.lots.findIndex(l=>l.id===d.id); if(i>=0) data.lots[i]=d; else data.lots.push(d)},`Lot ${pad(d.no)} enregistré.`,uploads);
   if(ok) removed.forEach(p=>ghDelete(p,"Suppression "+p));
 }
@@ -700,7 +718,7 @@ function renderPfRows(){
   const el=document.getElementById("pf-rows"); if(!el) return;
   el.innerHTML=pfWork.map((x,i)=>`<div class="st-row">
       <input id="pf-n-${i}" value="${esc(x.nom)}" aria-label="Nom du profil ${i+1}" placeholder="Ex. Amis">
-      <span class="pf-delai"><input id="pf-d-${i}" type="number" inputmode="numeric" min="0" max="60" step="1" value="${esc(x.delai)}" aria-label="Délai du profil ${i+1} en jours"> <span class="note">jours</span></span>
+      ${x.id==="acheteurs"?`<span class="note">Voit seulement les lots qui lui sont réservés</span>`:`<span class="pf-delai"><input id="pf-d-${i}" type="number" inputmode="numeric" min="0" max="60" step="1" value="${esc(x.delai)}" aria-label="Délai du profil ${i+1} en jours"> <span class="note">jours</span></span>`}
       <span class="note st-used">${x.code?"lien actif":"lien créé à l'enregistrement"}</span>
       <span class="st-ops"><button type="button" class="btn" data-act="pf-up" data-i="${i}" aria-label="Monter" ${i?"":"disabled"}>↑</button><button type="button" class="btn danger" data-act="pf-del" data-i="${i}" aria-label="Supprimer">×</button></span>
     </div>`).join("")||`<span class="note">Aucun profil : seul le lien public existe.</span>`;
@@ -831,7 +849,7 @@ document.addEventListener("click",e=>{
     case "copy": copyText(document.getElementById("ref"),"Référence"); break;
     case "new-code": { const pf=profilById(id); if(!pf) return; const c=randCode(slug(pf.nom));
       save(data=>{ if(!Array.isArray(data.meta.profils)||!data.meta.profils.length) data.meta.profils=clone(profils()); delete data.meta.codeFamille; const x=data.meta.profils.find(y=>y.id===id); if(x) x.code=c },`Nouveau lien ${pf.nom.toLowerCase()} : renvoie-le aux personnes concernées.`); break }
-    case "open-all": { const t=Date.now(); save(data=>{const x=data.lots.find(y=>y.id===id); if(x){ delete x.familleSeule; delete x.reserveFoyer; delete x.ouvertLe; x.dispoLe=t }},"Lot rendu disponible : la famille le voit maintenant, puis les autres profils selon leurs délais."); break }
+    case "open-all": { const t=Date.now(); save(data=>{const x=data.lots.find(y=>y.id===id); if(x){ delete x.familleSeule; delete x.reserveFoyer; delete x.reserveAcheteurs; delete x.ouvertLe; x.dispoLe=t }},"Lot rendu disponible : la famille le voit maintenant, puis les autres profils selon leurs délais."); break }
     case "publish-lot": { const t=Date.now(); save(data=>{const x=data.lots.find(y=>y.id===id); if(x) x.dispoLe=t},"Lot mis à disposition."); break }
     case "qs": { const l=byId(id); if(!l||statusOf(l)===b.dataset.v) return; const v=b.dataset.v;
       save(data=>{const x=data.lots.find(y=>y.id===id); if(x){ x.statut=v; if(stDef(v).type!=="reserve") x.reservePour="" }},`Lot ${pad(l.no)} : ${stLabel(v).toLowerCase()}.`); break }
