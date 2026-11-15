@@ -1263,6 +1263,25 @@
    "dispoLe": 1794747524820,
    "reservePour": "Gérald",
    "reserveFoyer": true
+  },
+  {
+   "id": "lmwhucqis",
+   "no": 63,
+   "titre": "Enceinte fiesta",
+   "categorie": "Électroménager",
+   "piece": "Salle HC",
+   "description": "",
+   "prix": "",
+   "statut": "dispo",
+   "photos": [
+    {
+     "id": "photos/lmwhucqis-mwhud0i2633k.jpg",
+     "t": "photos/lmwhucqis-mwhud0i2633k-t.jpg"
+    }
+   ],
+   "dispoLe": 1794747577139,
+   "reservePour": "",
+   "reserveFoyer": true
   }
  ]
 }
