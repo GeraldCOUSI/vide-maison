@@ -122,11 +122,11 @@
    "id": "lmwhlx089",
    "no": 2,
    "titre": "Ordinateur Multi média",
-   "categorie": "Informatique",
+   "categorie": "Informatique & multimédia",
    "piece": "Garage",
    "description": "Configuration à préciser",
    "prix": 0,
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwhlx089-mwhlxj1w507i.jpg",
@@ -134,7 +134,7 @@
     }
    ],
    "dispoLe": 1794733583573,
-   "reservePour": ""
+   "reservePour": "Baptiste"
   },
   {
    "id": "lmwhrbf79",
