@@ -390,7 +390,7 @@
    "piece": "Mezzanine",
    "description": "",
    "prix": "",
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwhs78aj-mwhs7l8abk6v.jpg",
@@ -398,7 +398,7 @@
     }
    ],
    "dispoLe": 1794743960889,
-   "reservePour": "",
+   "reservePour": "Elise",
    "reserveFoyer": true
   },
   {
