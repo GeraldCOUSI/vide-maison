@@ -2002,7 +2002,7 @@
    "piece": "Clayettes",
    "description": "Caisse 2",
    "prix": "",
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwhwwpac-mwhwwtpn3uav.jpg",
@@ -2010,7 +2010,7 @@
     }
    ],
    "dispoLe": 1794751874705,
-   "reservePour": "",
+   "reservePour": "Elise",
    "reserveFoyer": true
   },
   {
