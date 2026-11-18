@@ -276,7 +276,7 @@
    "piece": "Salon/ Salle à manger",
    "description": "",
    "prix": "",
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwhs17ba-mwhs1bhxgznr.jpg",
@@ -284,7 +284,7 @@
     }
    ],
    "dispoLe": 1794743675398,
-   "reservePour": "",
+   "reservePour": "Magali",
    "reserveFoyer": true
   },
   {
