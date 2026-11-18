@@ -219,7 +219,7 @@
    "piece": "Entrée",
    "description": "",
    "prix": "",
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwhryxey-mwhrz28fdn8u.jpg",
@@ -227,7 +227,7 @@
     }
    ],
    "dispoLe": 1794743570825,
-   "reservePour": "",
+   "reservePour": "Magali",
    "reserveFoyer": true
   },
   {
