@@ -1197,7 +1197,7 @@
    "piece": "Clayettes",
    "description": "",
    "prix": "",
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwhu84rp-mwhu8by4e8se.jpg",
@@ -1205,7 +1205,7 @@
     }
    ],
    "dispoLe": 1794747360358,
-   "reservePour": "",
+   "reservePour": "Magali",
    "reserveFoyer": true
   },
   {
