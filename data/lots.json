@@ -2287,7 +2287,7 @@
    "piece": "Salle HC",
    "description": "",
    "prix": "",
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwi3yks4-mwi3z2mlxga4.jpg",
@@ -2295,7 +2295,7 @@
     }
    ],
    "dispoLe": 1794763714890,
-   "reservePour": "",
+   "reservePour": "Elise",
    "reserveFoyer": true
   },
   {
