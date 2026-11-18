@@ -1083,7 +1083,7 @@
    "piece": "Buanderie",
    "description": "",
    "prix": "",
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwhu3f2v-mwhu3urw5n66.jpg",
@@ -1091,7 +1091,7 @@
     }
    ],
    "dispoLe": 1794747141035,
-   "reservePour": "",
+   "reservePour": "Magali",
    "reserveFoyer": true
   },
   {
