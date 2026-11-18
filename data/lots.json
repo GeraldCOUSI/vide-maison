@@ -1453,7 +1453,7 @@
    "piece": "Salle HC",
    "description": "",
    "prix": "",
-   "statut": "dispo",
+   "statut": "reserve",
    "photos": [
     {
      "id": "photos/lmwhum548-mwhumejvqtih.jpg",
@@ -1461,7 +1461,7 @@
     }
    ],
    "dispoLe": 1794748015054,
-   "reservePour": "",
+   "reservePour": "Magali",
    "reserveFoyer": true
   },
   {
