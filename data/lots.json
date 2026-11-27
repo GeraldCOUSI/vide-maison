@@ -423,7 +423,7 @@
    "piece": "Salon/ Salle à manger",
    "description": "",
    "prix": "",
-   "statut": "reserve",
+   "statut": "parti",
    "photos": [
     {
      "id": "photos/lmwhs8s20-mwhs9b3m919b.jpg",
@@ -431,7 +431,7 @@
     }
    ],
    "dispoLe": 1794744051000,
-   "reservePour": "Baptiste",
+   "reservePour": "",
    "reserveFoyer": true
   },
   {
